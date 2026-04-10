@@ -30,13 +30,13 @@ public class WorkSpaceServiceImpl implements WorkSpaceService {
 
     @Override
     public void insertWorkSpace(Long memberNo, WorkSpaceDto.WorkSpaceCreateRequest request) {
-        workSpaceMapper.insertWorkSpace(request);
+        workSpaceMapper.insertWorkSpace(memberNo,request);
         Long workSpaceNo = workSpaceMapper.lastInsertId();
 
         WorkSpaceDto.WorkSpaceMemberCreateRequest memberRequest
                 = WorkSpaceDto.WorkSpaceMemberCreateRequest.of(
                         workSpaceNo,
-                request.memberNo(),
+                memberNo,
                 "OWNER"
         );
 
