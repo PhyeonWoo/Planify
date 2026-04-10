@@ -35,6 +35,7 @@ public class JwtProvider {
             claims.put("role",role);
         }
 
+
         Date now = new Date();
         return Jwts.builder()
                 .setClaims(claims)
@@ -79,7 +80,7 @@ public class JwtProvider {
             Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
-                    .parseClaimsJwt(token);
+                    .parseClaimsJws(token);
             return true;
         }
         catch (JwtException | IllegalArgumentException e) {

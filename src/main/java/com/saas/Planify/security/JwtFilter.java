@@ -26,6 +26,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 path.startsWith("/api-docs") ||
                 path.startsWith("/webjars")) {
             filterChain.doFilter(request, response);
+            return;
         }
 
         String token = jwtProvider.resolveToken(request.getHeader("Authorization"));
@@ -38,5 +39,6 @@ public class JwtFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
         }
+        filterChain.doFilter(request,response);
     }
 }
