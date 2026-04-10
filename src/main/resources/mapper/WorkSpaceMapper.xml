@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.saas.Planify.mapper.workspace.WorkSpaceMapper">
+
+    <insert id="insertWorkSpace">
+        INSERT INTO SAAS_WORKSPACE (ownerNo, workSpaceName, description, type, createdDt, updatedDt)
+        VALUES (#{memberNo}, #{request.workSpaceName}, #{request.description}, #{request.type}, NOW(), NOW())
+    </insert>
+
+    <select id="lastInsertId" resultType="Long">
+        SELECT LAST_INSERT_ID()
+    </select>
+
+
+    <update id="updateWorkSpace">
+        UPDATE SAAS_WORKSPACE
+        SET
+        workSpaceName = #{request.workSpaceName},
+        description = #{request.description},
+        type = #{request.type}
+        WHERE workSpaceNo = #{workSpaceNo}
+        AND ownerNo = #{ownerNo}
+        AND deletedDt IS NULL
+    </update>
+
+
+    <update id="deleteWorkSpace">
+        UPDATE SAAS_WORKSPACE
+        SET
+        deletedDt = NOW(),
+        updatedDt = NOW()
+        WHERE workSpaceNo = #{workSpaceNo}
+        AND ownerNo = #{ownerNo}
+        AND deletedDt IS NULL
+    </update>
+
+
+    <select id="singleWorkSpace" resultType="com.saas.Planify.model.dto.workspace.WorkSpaceDto$WorkSpaceFlatDto">
+        SELECT
+        SW.workSpaceNo AS workSpaceNo,
+        SW.ownerNo AS ownerNo,
+        SM.nickname AS ownerNickname,
+        SW.workSpaceName AS workSpaceName,
+        SW.description AS description,
+        SW.type AS type,
+        SW.createdDt AS createdDt,
+        SW.updatedDt AS updatedDt
+        FROM SAAS_WORKSPACE SW
+        JOIN SAAS_MEMBER SM ON SM.memberNo = SW.ownerNo
+        WHERE SW.workSpaceNo = #{workSpaceNo}
+        AND SW.deletedDt IS NULL
+    </select>
+
+
+    <select id="MemberWorkSpace" resultType="com.saas.Planify.model.dto.workspace.WorkSpaceDto$WorkSpaceFlatDto">
+        SELECT
+        SW.workSpaceNo AS workSpaceNo,
+        SW.ownerNo AS ownerNo,
+        SM.nickname AS ownerNickname,
+        SW.workSpaceName AS workSpaceName,
+        SW.description AS description,
+        SW.type AS type,
+        SW.createdDt AS createdDt,
+        SW.updatedDt AS updatedDt
+        FROM SAAS_WORKSPACE SW
+        JOIN SAAS_MEMBER SM ON SM.memberNo = SW.ownerNo
+        JOIN SAAS_WORKSPACE_MEMBER SWM ON SWM.workSpaceNo = SW.workSpaceNo
+        WHERE SWM.memberNo = #{memberNo}
+        AND SW.deletedDt IS NULL
+        ORDER BY SW.createdDt DESC
+    </select>
+
+
+    <insert id="insertWorkSpaceMember" parameterType="com.saas.Planify.model.dto.workspace.WorkSpaceDto$WorkSpaceMemberCreateRequest">
+        INSERT INTO SAAS_WORKSPACE_MEMBER (workSpaceNo, memberNo, role, joinedDt, updatedDt)
+        VALUES (#{workSpaceNo}, #{memberNo}, #{role}, NOW(), NOW())
+    </insert>
+
+    <update id="updateMemberRole">
+        UPDATE SAAS_WORKSPACE_MEMBER
+        SET role = #{role},
+        updatedDt = NOW()
+        WHERE workSpaceNo = #{workSpaceNo}
+        AND memberNo = #{targetMemberNo}
+        AND deletedDt IS NULL
+    </update>
+
+    <update id="deleteWorkSpaceMember">
+        UPDATE SAAS_WORKSPACE_MEMBER
+        SET deletedDt = NOW()
+        WHERE workSpaceNo = #{workSpaceNo}
+        AND memberNo = #{memberNo}
+        AND deletedDt IS NULL
+    </update>
+
+
+    <select id="workSpaceAllMember" resultType="com.saas.Planify.model.dto.workspace.WorkSpaceDto$WorkSpaceFlatMember">
+        SELECT
+        SWM.wsMemberNo AS wsMemberNo,
+        SWM.workSpaceNo AS workSpaceNo,
+        SWM.memberNo AS memberNo,
+        SM.nickname AS nickname,
+        SL.email AS email,
+        SWM.role AS role,
+        SWM.joinedDt AS joinedDt
+        FROM SAAS_WORKSPACE_MEMBER SWM
+        LEFT JOIN SAAS_MEMBER SM ON SM.memberNo = SWM.memberNo
+        LEFT JOIN SAAS_LOGIN SL ON SL.memberNo = SWM.memberNo
+        WHERE SWM.workSpaceNo = #{workSpaceNo}
+        AND SWM.deletedDt IS NULL
+        ORDER BY SWM.joinedDt ASC
+    </select>
+
+
+    <select id="singleWorkSpaceMember" resultType="com.saas.Planify.model.dto.workspace.WorkSpaceDto$WorkSpaceFlatMember">
+        SELECT
+        SWM.wsMemberNo AS wsMemberNo,
+        SWM.workSpaceNo AS workSpaceNo,
+        SWM.memberNo AS memberNo,
+        SM.nickname AS nickname,
+        SL.email AS email,
+        SWM.role AS role,
+        SWM.joinedDt AS joinedDt
+        FROM SAAS_WORKSPACE_MEMBER SWM
+        LEFT JOIN SAAS_MEMBER SM ON SM.memberNo = SWM.memberNo
+        LEFT JOIN SAAS_LOGIN SL ON SL.memberNo = SWM.memberNo
+        WHERE SWM.memberNo = #{memberNo}
+        AND SWM.workSpaceNo = #{workSpaceNo}
+        AND SWM.deletedDt IS NULL
+    </select>
+
+
+    <insert id="createInvite" parameterType="map" useGeneratedKeys="true" keyProperty="inviteNo">
+        INSERT INTO SAAS_WORKSPACE_INVITE (workSpaceNo, inviterNo, inviteToken, role, expiredDt, usedCount, createdDt)
+        VALUES (#{workSpaceNo}, #{inviterNo}, #{inviteToken}, #{role}, #{expiredDt}, 0, NOW())
+    </insert>
+
+
+    <select id="selectInviteToken" resultType="com.saas.Planify.model.dto.workspace.WorkSpaceDto$WorkSpaceInviteFlat">
+        SELECT
+        SWI.inviteNo,
+        SWI.workSpaceNo,
+        SWI.inviteToken,
+        SWI.role,
+        DATE_FORMAT(SWI.expiredDt, '%Y-%m-%d %H:%i:%s') AS expiredDt,
+        SWI.usedCount,
+        SM.nickname AS inviterNickName
+        FROM SAAS_WORKSPACE_INVITE SWI
+        JOIN SAAS_MEMBER SM ON SWI.inviterNo = SM.memberNo
+        WHERE SWI.inviteToken = #{inviteToken}
+    </select>
+
+
+    <update id="incrementInviteUsedCount">
+        UPDATE SAAS_WORKSPACE_INVITE
+        SET usedCount = usedCount + 1
+        WHERE inviteToken = #{inviteToken}
+    </update>
+
+</mapper>
