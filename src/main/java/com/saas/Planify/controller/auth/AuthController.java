@@ -6,11 +6,12 @@ import com.saas.Planify.security.JwtProvider;
 import com.saas.Planify.service.auth.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @RequestMapping("/api/v1/auth")
 public class AuthController {
     private final AuthService authService;
@@ -20,17 +21,20 @@ public class AuthController {
     public ApiResponse<String> signUp(
             @Valid @RequestBody AuthDto.SignUpRequest request
     ) {
+        log.info("start");
         authService.signUp(request);
         return ApiResponse.ok("생성 완료");
     }
 
+
     @PostMapping("/login")
     public ApiResponse<AuthDto.LoginResponse> login(
-            @RequestBody AuthDto.LoginRequest request
+           @Valid @RequestBody AuthDto.LoginRequest request
     ) {
         AuthDto.LoginResponse response = authService.login(request);
         return ApiResponse.ok(response);
     }
+
 
 
     @PostMapping("/logout")

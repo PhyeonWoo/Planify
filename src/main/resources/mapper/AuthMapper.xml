@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.saas.Planify.mapper.auth.AuthMapper">
+    
+    <insert id="insertMember" parameterType="com.saas.Planify.model.dto.auth.AuthDto$MemberCreateRequest">
+        INSERT INTO SAAS_MEMBER (name, nickname, phoneNumber, role)
+        VALUES (#{name}, #{nickname}, #{phoneNumber}, #{role})
+    </insert>
+
+    <insert id="insertLogin" parameterType="com.saas.Planify.model.dto.auth.AuthDto$LoginCreateRequest">
+        INSERT INTO SAAS_LOGIN (email, pw, memberNo)
+        VALUES (#{email}, #{pw}, #{memberNo})
+    </insert>
+
+
+    <select id="lastInsertId" resultType="Long">
+        SELECT LAST_INSERT_ID()
+    </select>
+
+
+    <select id="existByEmail" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM SAAS_LOGIN
+        WHERE email = #{email}
+    </select>
+
+    <select id="findByEmail" resultType="com.saas.Planify.model.dto.auth.AuthDto$LoginInfoResponse">
+        SELECT email as email
+        , pw as pw
+        , loginNo as loginNo
+        FROM SAAS_LOGIN
+        WHERE email = #{email}
+    </select>
+
+</mapper>
