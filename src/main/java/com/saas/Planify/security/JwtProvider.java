@@ -119,4 +119,19 @@ public class JwtProvider {
         }
     }
 
+
+    public UserPrincipal getUserPrincipal(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        Long memberNo = claims.get("memberNo", Long.class);
+        String email = claims.getSubject();
+        String role = claims.get("role", String.class);
+
+        return new UserPrincipal(memberNo,email,null,role);
+    }
+
 }
