@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.saas.Planify.mapper.project.ProjectMapper">
+
+
+    <insert id="createProject">
+        INSERT INTO SAAS_PROJECT (workSpaceNo, creatorNo, name, description, startDt, endDt, createdDt, updatedDt)
+        VALUES (#{workSpaceNo}, #{memberNo}, #{request.name}, #{request.description}, #{request.startDt}, #{request.endDt}, NOW(), NOW())
+    </insert>
+
+    <insert id="insertProjectMember">
+        INSERT INTO SAAS_PROJECT_MEMBER (projectNo, memberNo, role)
+        VALUES (#{projectNo}, #{memberNo}, #{role})
+    </insert>
+
+
+    <select id="lastInsertId" resultType="Long">
+        SELECT LAST_INSERT_ID()
+    </select>
+
+
+    <select id="singleProject" resultType="com.saas.Planify.model.dto.project.ProjectDto$ProjectFlatResponse">
+        SELECT
+        SP.projectNo,
+        SP.creatorNo AS memberNo,
+        SM.nickname,
+        SP.name,
+        SP.description,
+        SP.startDt,
+        SP.endDt,
+        SP.createdDt,
+        SP.updatedDt
+        FROM SAAS_PROJECT SP
+        JOIN SAAS_MEMBER SM ON SM.memberNo = SP.creatorNo
+        WHERE SP.projectNo = #{projectNo}
+        AND SP.deletedDt IS NULL
+    </select>
+
+
+    <select id="MemberProject" resultType="com.saas.Planify.model.dto.project.ProjectDto$ProjectFlatResponse">
+        SELECT
+        SP.projectNo,
+        SP.creatorNo AS memberNo,
+        SM.nickname,
+        SP.name,
+        SP.description,
+        SP.startDt,
+        SP.endDt,
+        SP.createdDt,
+        SP.updatedDt
+        FROM SAAS_PROJECT SP
+        JOIN SAAS_MEMBER SM ON SM.memberNo = SP.creatorNo
+        JOIN SAAS_PROJECT_MEMBER SPM ON SPM.projectNo = SP.projectNo
+        WHERE SPM.memberNo = #{memberNo}
+        AND SP.deletedDt IS NULL
+        ORDER BY SP.createdDt DESC
+    </select>
+
+    <select id="projectAllMember" resultType="com.saas.Planify.model.dto.project.ProjectDto$ProjectMemberFlatResponse">
+        SELECT
+        SPM.pjMemberNo,
+        SPM.projectNo,
+        SPM.memberNo,
+        SM.nickname,
+        SL.email,
+        SPM.role
+        FROM SAAS_PROJECT_MEMBER SPM
+        JOIN SAAS_MEMBER SM ON SM.memberNo = SPM.memberNo
+        LEFT JOIN SAAS_LOGIN SL ON SL.memberNo = SPM.memberNo
+        WHERE SPM.projectNo = #{projectNo}
+        ORDER BY SPM.pjMemberNo
+    </select>
+
+    <select id="singleProjectMember" resultType="com.saas.Planify.model.dto.project.ProjectDto$ProjectMemberFlatResponse">
+        SELECT
+        SPM.pjMemberNo,
+        SPM.projectNo,
+        SPM.memberNo,
+        SM.nickname,
+        SL.email,
+        SPM.role
+        FROM SAAS_PROJECT_MEMBER SPM
+        JOIN SAAS_MEMBER SM ON SM.memberNo = SPM.memberNo
+        LEFT JOIN SAAS_LOGIN SL ON SL.memberNo = SPM.memberNo
+        WHERE SPM.projectNo = #{projectNo}
+        AND SPM.memberNo = #{memberNo}
+    </select>
+
+
+
+    <update id="updateProject">
+        UPDATE SAAS_PROJECT
+        SET
+        name = #{request.name},
+        description = #{request.description},
+        endDt = #{request.endDt},
+        updatedDt = NOW()
+        WHERE projectNo = #{projectNo}
+        AND creatorNo = #{memberNo}
+        AND deletedDt IS NULL
+    </update>
+
+    <update id="updateMemberRole">
+        UPDATE SAAS_PROJECT_MEMBER
+        SET
+        role = #{role}
+        WHERE projectNo = #{projectNo}
+        AND memberNo = #{targetMemberNo}
+    </update>
+
+
+    <update id="deleteProject">
+        UPDATE SAAS_PROJECT
+        SET
+        deletedDt = NOW()
+        WHERE projectNo = #{projectNo}
+        AND creatorNo = #{memberNo}
+        AND deletedDt IS NULL
+    </update>
+
+
+
+    <delete id="deleteMember">
+        DELETE FROM SAAS_PROJECT_MEMBER
+        WHERE projectNo = #{projectNo}
+        AND memberNo = #{targetMemberNo}
+    </delete>
+
+
+</mapper>
