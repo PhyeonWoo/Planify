@@ -8,12 +8,10 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.util.Collections;
 import java.util.Date;
 
 @Component
@@ -99,9 +97,13 @@ public class JwtProvider {
 
 
     public Authentication getAuthentication(String token) {
-        String id = getUserId(token);
-        return new UsernamePasswordAuthenticationToken(id,"",
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+            UserPrincipal userPrincipal = getUserPrincipal(token);
+
+            return new UsernamePasswordAuthenticationToken(
+                    userPrincipal,
+                    "",
+                    userPrincipal.getAuthorities() // UserPrincipal에 구현된 ROLE_ 권한 사용
+            );
     }
 
     public long getExpiration(String token) {
