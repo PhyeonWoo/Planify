@@ -59,28 +59,63 @@ public class AuthServiceImpl implements AuthService {
 
     }
 
-    @Override
-    public AuthDto.LoginResponse login(AuthDto.LoginRequest request) {
-        AuthDto.LoginInfoResponse info = authMapper.findByEmail(request.email());
+//    @Override
+//    public AuthDto.LoginResponse login(AuthDto.LoginRequest request) {
+//        AuthDto.LoginInfoResponse info = authMapper.findByEmail(request.email());
+//
+//        if (info == null) {
+//            throw new IllegalArgumentException("존재하지 않는 계정입니다.");
+//        }
+//
+//        if (!passwordEncoder.matches(request.pw(), info.pw())) {
+//            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+//        }
+//
+////// AuthService의 로그인 메서드 안에서
+////        Member member = memberMapper.findByEmail(request.getEmail()).get();
+//
+//// 여기서 member.getMemberNo()가 '3'을 가져오는지 확인!
+//        String token = jwtProvider.createAccessToken(
+//                info.email(),
+//                info.memberNo(), // 이 값이 1이 아니라 3이어야 합니다.
+//                info.()
+//        );
+//        String refreshToken = jwtProvider.createRefreshToken(info.email(), info.loginNo());
+//
+//        redisTokenService.saveRefreshToken(info.email(), refreshToken, REFRESH_TOKEN_EXPIRATION);
+//
+//        return AuthDto.LoginResponse.of(accessToken, refreshToken);
+//    }
 
-        if (info == null) {
-            throw new IllegalArgumentException("존재하지 않는 계정입니다.");
-        }
 
-        if (!passwordEncoder.matches(request.pw(), info.pw())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-        }
+@Override
+public AuthDto.LoginResponse login(AuthDto.LoginRequest request) {
+    AuthDto.LoginInfoResponse info = authMapper.findByEmail(request.email());
 
-        String accessToken = jwtProvider.createAccessToken(
-                info.email(),
-                info.loginNo(),
-                "ROLE_USER");
-        String refreshToken = jwtProvider.createRefreshToken(info.email(), info.loginNo());
-
-        redisTokenService.saveRefreshToken(info.email(), refreshToken, REFRESH_TOKEN_EXPIRATION);
-
-        return AuthDto.LoginResponse.of(accessToken, refreshToken);
+    if (info == null) {
+        throw new IllegalArgumentException("존재하지 않는 계정입니다.");
     }
+
+    if (!passwordEncoder.matches(request.pw(), info.pw())) {
+        throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+    }
+
+    // [중요] 여기서 info.memberNo()가 DB의 '3'인지 로그를 찍어보세요!
+    System.out.println("로그인 시도 memberNo: " + info.memberNo());
+
+    String accessToken = jwtProvider.createAccessToken(
+            info.email(),
+            info.memberNo(), // 반드시 DB의 SAAS_MEMBER.memberNo 값이어야 함
+            "ROLE_USER"      // 혹은 info.role() 등 권한 정보
+    );
+
+    // RefreshToken은 보통 loginNo나 email을 기준으로 관리합니다.
+    String refreshToken = jwtProvider.createRefreshToken(info.email(), info.loginNo());
+
+    redisTokenService.saveRefreshToken(info.email(), refreshToken, REFRESH_TOKEN_EXPIRATION);
+
+    return AuthDto.LoginResponse.of(accessToken, refreshToken);
+}
 
     @Override
     public AuthDto.LoginResponse reissue(String refreshToken) {

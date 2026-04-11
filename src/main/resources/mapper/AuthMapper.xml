@@ -27,9 +27,11 @@
     </select>
 
     <select id="findByEmail" resultType="com.saas.Planify.model.dto.auth.AuthDto$LoginInfoResponse">
-        SELECT email as email
+        SELECT
+          email as email
         , pw as pw
         , loginNo as loginNo
+        , memberNo AS memberNo
         FROM SAAS_LOGIN
         WHERE email = #{email}
     </select>

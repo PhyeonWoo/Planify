@@ -77,6 +77,7 @@ public class AuthDto {
     public record LoginInfoResponse(
             String email,
             String pw,
+            Long memberNo,
             Long loginNo
     ) {}
 }
