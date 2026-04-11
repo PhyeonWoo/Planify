@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -34,10 +34,10 @@ public class WorkSpaceServiceImpl implements WorkSpaceService {
         Long workSpaceNo = workSpaceMapper.lastInsertId();
 
         WorkSpaceDto.WorkSpaceMemberCreateRequest memberRequest
-                = WorkSpaceDto.WorkSpaceMemberCreateRequest.of(
+                = new WorkSpaceDto.WorkSpaceMemberCreateRequest(
                         workSpaceNo,
-                memberNo,
-                "OWNER"
+                        memberNo,
+                   "OWNER"
         );
 
         workSpaceMapper.insertWorkSpaceMember(memberRequest);
@@ -48,13 +48,14 @@ public class WorkSpaceServiceImpl implements WorkSpaceService {
 
     @Override
     public void updateWorkSpace(Long workSpaceNo, Long memberNo, WorkSpaceDto.WorkSpaceUpdateRequest request) {
-        WorkSpaceDto.WorkSpaceFlatMember member = workSpaceMapper.singleWorkSpaceMember(workSpaceNo, memberNo);
+        WorkSpaceDto.WorkSpaceFlatMember member =
+                workSpaceMapper.singleWorkSpaceMember(memberNo, workSpaceNo);
 
         if(member == null || (!"OWNER".equals(member.role()) && !"ADMIN".equals(member.role()))) {
             throw new IllegalArgumentException("권한이 없습니다.");
         }
 
-        workSpaceMapper.updateWorkSpace(request);
+        workSpaceMapper.updateWorkSpace(workSpaceNo, memberNo, request);
     }
 
 
@@ -74,7 +75,8 @@ public class WorkSpaceServiceImpl implements WorkSpaceService {
 
     @Override
     public WorkSpaceDto.WorkSpaceControllerResponse singleWorkSpace(Long workSpaceNo) {
-        WorkSpaceDto.WorkSpaceFlatDto flat = workSpaceMapper.singleWorkSpace(workSpaceNo);
+        WorkSpaceDto.WorkSpaceFlatDto flat =
+                workSpaceMapper.singleWorkSpace(workSpaceNo);
 
         if(flat == null) {
             throw new IllegalArgumentException("존재하지 않음");
@@ -102,7 +104,7 @@ public class WorkSpaceServiceImpl implements WorkSpaceService {
     @Override
     public void updateMemberRole(Long workSpaceNo, Long memberNo, Long targetMemberNo, String role) {
         WorkSpaceDto.WorkSpaceFlatMember member =
-                workSpaceMapper.singleWorkSpaceMember(workSpaceNo, memberNo);
+                workSpaceMapper.singleWorkSpaceMember(memberNo, workSpaceNo);
 
         if(member == null || (!"OWNER".equals(member.role()) && !"ADMIN".equals(member.role()))) {
             throw new IllegalArgumentException("권한이 없습니다.");
@@ -153,17 +155,16 @@ public class WorkSpaceServiceImpl implements WorkSpaceService {
 
     @Override
     public WorkSpaceDto.WorkSpaceInviteResponse createInvite(Long workSpaceNo, Long memberNo, WorkSpaceDto.CreateInviteRequest request) {
-        WorkSpaceDto.WorkSpaceFlatMember member = workSpaceMapper.singleWorkSpaceMember(workSpaceNo, memberNo);
+        WorkSpaceDto.WorkSpaceFlatMember member =
+                workSpaceMapper.singleWorkSpaceMember(memberNo, workSpaceNo);
 
         if(member == null || (!"OWNER".equals(member.role()) && !"ADMIN".equals(member.role()))) {
             throw new IllegalArgumentException("권한이 없습니다.");
         }
 
-
         String inviteToken = UUID.randomUUID().toString();
         String role = (request.role() != null) ? request.role() : "MEMBER";
         LocalDateTime expiredDate = LocalDateTime.now().plusHours(request.expireHours());
-
 
         Map<String, Object> param = new HashMap<>();
         param.put("workSpaceNo",workSpaceNo);
@@ -174,45 +175,46 @@ public class WorkSpaceServiceImpl implements WorkSpaceService {
 
         workSpaceMapper.createInvite(param);
 
+        Long inviteNo = null;
+        Object inviteNoObj = param.get("inviteNo");
+        if (inviteNoObj != null) {
+            if (inviteNoObj instanceof BigInteger) {
+                inviteNo = ((BigInteger) inviteNoObj).longValue();
+            } else if (inviteNoObj instanceof Number) {
+                inviteNo = ((Number) inviteNoObj).longValue();
+            }
+        }
+
         WorkSpaceDto.WorkSpaceInviteResponse response = new WorkSpaceDto.WorkSpaceInviteResponse();
-        response.inviteNo = (Long) param.get("inviteNo");
+        response.inviteNo = inviteNo;
         response.inviteToken = inviteToken;
         response.inviteLink = inviteBaseUrl + inviteToken;
         response.role = role;
-        response.expiredDt = expiredDate.toString();
-        response.useCount = 0;
+        response.expiredDt = expiredDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        response.usedCount = 0;
         return response;
     }
 
+
     @Override
-    public void joinByInvite(String inviteToken, Long memberNo) {
+    public Long joinByInvite(String inviteToken, Long memberNo) {
         WorkSpaceDto.WorkSpaceInviteFlat flat = workSpaceMapper.selectInviteToken(inviteToken);
 
-        if (flat == null) {
-            throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
+        if (flat == null) throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
+
+        if (memberNo != null) {
+            WorkSpaceDto.WorkSpaceMemberCreateRequest request =
+                    new WorkSpaceDto.WorkSpaceMemberCreateRequest(
+                            flat.workSpaceNo(),
+                            memberNo,
+                            flat.role()
+            );
+            workSpaceMapper.insertWorkSpaceMember(request);
         }
-
-        if(LocalDateTime.parse(flat.expiredDt().replace(" ","T")).isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("만료된 초대 링크 입니다.");
-        }
-
-        WorkSpaceDto.WorkSpaceFlatMember exist = workSpaceMapper.singleWorkSpaceMember(memberNo, flat.workSpaceNo());
-        if(exist != null) {
-            throw new IllegalArgumentException("이미 참여중인 워크스페이스 입니다.");
-        }
-
-        WorkSpaceDto.WorkSpaceMemberCreateRequest request = WorkSpaceDto.WorkSpaceMemberCreateRequest.of(
-                flat.workSpaceNo(),
-                memberNo,
-                flat.role()
-        );
-
-        workSpaceMapper.insertWorkSpaceMember(request);
 
         workSpaceMapper.incrementInviteUsedCount(inviteToken);
+        return flat.workSpaceNo();
     }
-
-
 
 
 
@@ -223,7 +225,6 @@ public class WorkSpaceServiceImpl implements WorkSpaceService {
         response.description = request.description();
         response.type = request.type();
         response.ownerNickname = request.ownerNickname();
-        response.createdDt = LocalDate.now();
 
         return response;
     }

@@ -29,6 +29,6 @@ public interface WorkSpaceService {
 
     WorkSpaceDto.WorkSpaceInviteResponse createInvite(Long workSpaceNo, Long memberNo, WorkSpaceDto.CreateInviteRequest request);
 
-    void joinByInvite(String inviteToken, Long memberNo);
+    Long joinByInvite(String inviteToken, Long memberNo);
 
 }

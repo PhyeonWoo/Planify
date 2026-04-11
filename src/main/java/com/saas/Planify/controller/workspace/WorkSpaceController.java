@@ -2,6 +2,7 @@ package com.saas.Planify.controller.workspace;
 
 import com.saas.Planify.config.common.ApiResponse;
 import com.saas.Planify.model.dto.workspace.WorkSpaceDto;
+import com.saas.Planify.security.JwtProvider;
 import com.saas.Planify.security.UserPrincipal;
 import com.saas.Planify.service.workspace.WorkSpaceService;
 import lombok.RequiredArgsConstructor;
@@ -17,13 +18,20 @@ import java.util.List;
 @RequestMapping("/api/v1/workspace")
 public class WorkSpaceController {
     private final WorkSpaceService workSpaceService;
+    private final JwtProvider jwtProvider;
 
     @PostMapping
     public ApiResponse<String> createWorkSpace(
-            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestHeader("Authorization") String bearerToken,
+//            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestBody WorkSpaceDto.WorkSpaceCreateRequest request
     ) {
-        workSpaceService.insertWorkSpace(userPrincipal.getMemberNo(), request);
+        String token = jwtProvider.resolveToken(bearerToken);
+        Long memberNo = jwtProvider.getMemberNo(token);
+        workSpaceService.insertWorkSpace(memberNo, request);
+//        workSpaceService.insertWorkSpace(
+//                userPrincipal.getMemberNo(),
+//                request);
         return ApiResponse.ok("생성 완료");
     }
 
@@ -31,12 +39,14 @@ public class WorkSpaceController {
 
     @PutMapping("/{workSpaceNo}")
     public ApiResponse<String> updateWorkSpace(
-            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestHeader("Authorization") String bearerToken,
             @PathVariable Long workSpaceNo,
             @RequestBody WorkSpaceDto.WorkSpaceUpdateRequest request
     ) {
-
-        workSpaceService.updateWorkSpace(workSpaceNo, userPrincipal.getMemberNo(), request);
+        String token = jwtProvider.resolveToken(bearerToken);
+        Long memberNo = jwtProvider.getMemberNo(token);
+        workSpaceService.updateWorkSpace(workSpaceNo, memberNo, request);
+//        workSpaceService.updateWorkSpace(workSpaceNo, userPrincipal.getMemberNo(), request);
         return ApiResponse.ok("수정 완료");
     }
 
@@ -132,12 +142,19 @@ public class WorkSpaceController {
 
 
 
-    @PostMapping("/join/{inviteToken}")
-    public ApiResponse<String> joinByInvite(
+    @PostMapping("/invites/{inviteToken}/accept")
+    public ApiResponse<Long> acceptInvite(
             @PathVariable String inviteToken,
-            @AuthenticationPrincipal UserPrincipal userPrincipal
+            @RequestHeader(value = "Authorization", required = false) String bearerToken
     ) {
-        workSpaceService.joinByInvite(inviteToken, userPrincipal.getMemberNo());
-        return ApiResponse.ok("초대 완료");
+        Long memberNo = null;
+        if (bearerToken != null && !bearerToken.isEmpty()) {
+            String token = jwtProvider.resolveToken(bearerToken);
+            memberNo = jwtProvider.getMemberNo(token);
+        }
+
+        Long workSpaceNo = workSpaceService.joinByInvite(inviteToken, memberNo);
+
+        return ApiResponse.ok(workSpaceNo);
     }
 }
