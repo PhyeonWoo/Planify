@@ -25,6 +25,12 @@ public class SecurityConfig {
     private final JwtProvider jwtProvider;
     private final RedisTokenService redisTokenService;
 
+
+    @Bean
+    public JwtFilter jwtFilter() {
+        return new JwtFilter(jwtProvider, redisTokenService);
+    }
+
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
@@ -45,16 +51,17 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/logout").authenticated() // 인증 필요
+                        .requestMatchers("/api/v1/workspace/**",
+                                "/api/v1/project/**").permitAll()
+                        .requestMatchers("/api/v1/auth/logout").authenticated()
+//                        .requestMatchers("/api/v1/workspace/**").authenticated()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
@@ -64,13 +71,12 @@ public class SecurityConfig {
                                 "/api-docs",
                                 "/api-docs/**",
                                 "/webjars/**"
-                        ).permitAll() // Swagger
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(new JwtFilter(jwtProvider, redisTokenService),
-                        UsernamePasswordAuthenticationFilter.class);
-        http.formLogin(form -> form.disable())
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
+        http.formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable());
 
         return http.build();
