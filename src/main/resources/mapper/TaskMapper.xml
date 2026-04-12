@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.saas.Planify.mapper.task.TaskMapper">
+
+
+    <insert id="createTask">
+        INSERT INTO SAAS_TASK (
+        projectNo, creatorNo, title, description, status,
+        priority, dueDate, parentTaskNo, sortOrder, createdDt, updatedDt
+        )
+        VALUES (#{projectNo}, #{creatorNo}, #{request.title}, #{request.description},
+        'TODO',
+        COALESCE(#{request.priority}, 'MEDIUM'),
+        #{request.dueDate}, #{request.parentTaskNo}, 0, NOW(), NOW())
+    </insert>
+
+    <select id="lastInsertId" resultType="Long">
+        SELECT LAST_INSERT_ID()
+    </select>
+
+
+    <update id="completeTask">
+        UPDATE SAAS_TASK
+        SET
+        status = 'DONE',
+        completedDt = NOW(),
+        updatedDt = NOW()
+        WHERE taskNo = #{taskNo}
+        AND deletedDt IS NULL
+    </update>
+
+    <insert id="createComment">
+        INSERT INTO SAAS_TASK_COMMENT (taskNo, memberNo, content, parentCommentNo, createdDt, updatedDt)
+        VALUES (#{taskNo}, #{memberNo}, #{request.content}, #{request.parentCommentNo}, NOW(), NOW())
+    </insert>
+
+    <update id="updateTask">
+        UPDATE SAAS_TASK
+        SET
+        title = #{request.title},
+        description = #{request.description},
+        priority = #{request.priority},
+        dueDate = #{request.dueDate},
+        assigneeNo = #{request.assigneeNo},
+        updatedDt = NOW()
+        WHERE taskNo = #{taskNo}
+        AND deletedDt IS NULL
+    </update>
+
+    <update id="updateTaskSortOrder">
+        UPDATE SAAS_TASK
+        SET
+        sortOrder = #{sortOrder},
+        updatedDt = NOW()
+        WHERE taskNo = #{taskNo}
+        AND deletedDt IS NULL
+    </update>
+
+    <update id="updateTaskStatus">
+        UPDATE SAAS_TASK
+        SET
+        status = #{request.status},
+        updatedDt = NOW()
+        WHERE taskNo = #{taskNo}
+        AND deletedDt IS NULL
+    </update>
+
+    <update id="updateComment">
+        UPDATE SAAS_TASK_COMMENT
+        SET
+        content = #{request.content},
+        updatedDt = NOW()
+        WHERE commentNo = #{commentNo}
+        AND deletedDt IS NULL
+    </update>
+
+    <update id="deleteTask">
+        UPDATE SAAS_TASK
+        SET
+        deletedDt = NOW(),
+        updatedDt = NOW()
+        WHERE taskNo = #{taskNo}
+        AND deletedDt IS NULL
+    </update>
+
+
+    <update id="deleteComment">
+        UPDATE SAAS_TASK_COMMENT
+        SET
+        deletedDt = NOW(),
+        updatedDt = NOW()
+        WHERE commentNo = #{commentNo}
+        AND deletedDt IS NULL
+    </update>
+
+
+    <update id="deleteTaskComment">
+        UPDATE SAAS_TASK_COMMENT
+        SET
+        deletedDt = NOW(),
+        updatedDt = NOW()
+        WHERE taskNo = #{taskNo}
+        AND deletedDt IS NULL
+    </update>
+
+
+    <select id="getSubtasks" resultType="com.saas.Planify.model.dto.task.TaskDto$TaskFlatDto">
+        SELECT
+        ST.taskNo,
+        ST.projectNo,
+        ST.creatorNo,
+        SC.nickname AS creatorNickname,
+        ST.assigneeNo,
+        SA.nickname AS assigneeNickname,
+        ST.title,
+        ST.description,
+        ST.status,
+        ST.priority,
+        ST.dueDate,
+        ST.parentTaskNo,
+        ST.sortOrder,
+        ST.createdDt,
+        ST.updatedDt,
+        ST.deletedDt,
+        ST.completedDt
+        FROM SAAS_TASK ST
+        JOIN SAAS_MEMBER SC ON SC.memberNo = ST.creatorNo
+        LEFT JOIN SAAS_MEMBER SA ON SA.memberNo = ST.assigneeNo
+        WHERE ST.parentTaskNo = #{parentTaskNo}
+        AND ST.deletedDt IS NULL
+        ORDER BY ST.createdDt DESC
+    </select>
+
+
+    <select id="singleTask" resultType="com.saas.Planify.model.dto.task.TaskDto$TaskFlatDto">
+        SELECT
+        ST.taskNo,
+        ST.projectNo,
+        ST.creatorNo,
+        SC.nickname AS creatorNickname,
+        ST.assigneeNo,
+        SA.nickname AS assigneeNickname,
+        ST.title,
+        ST.description,
+        ST.status,
+        ST.priority,
+        ST.dueDate,
+        ST.parentTaskNo,
+        ST.sortOrder,
+        ST.createdDt,
+        ST.updatedDt,
+        ST.deletedDt,
+        ST.completedDt
+        FROM SAAS_TASK ST
+        JOIN SAAS_MEMBER SC ON SC.memberNo = ST.creatorNo
+        LEFT JOIN SAAS_MEMBER SA ON SA.memberNo = ST.assigneeNo
+        WHERE ST.taskNo = #{taskNo}
+        AND ST.deletedDt IS NULL
+    </select>
+
+
+    <select id="allTask" resultType="com.saas.Planify.model.dto.task.TaskDto$TaskFlatDto">
+        SELECT
+        ST.taskNo,
+        ST.projectNo,
+        ST.creatorNo,
+        SC.nickname AS creatorNickname,
+        ST.assigneeNo,
+        SA.nickname AS assigneeNickname,
+        ST.title,
+        ST.description,
+        ST.status,
+        ST.priority,
+        ST.dueDate,
+        ST.parentTaskNo,
+        ST.sortOrder,
+        ST.createdDt,
+        ST.updatedDt,
+        ST.deletedDt,
+        ST.completedDt
+        FROM SAAS_TASK ST
+        JOIN SAAS_MEMBER SC ON SC.memberNo = ST.creatorNo
+        LEFT JOIN SAAS_MEMBER SA ON SA.memberNo = ST.assigneeNo
+        WHERE ST.projectNo = #{projectNo}
+        AND ST.deletedDt IS NULL
+        AND ST.parentTaskNo IS NULL
+        ORDER BY ST.sortOrder ASC, ST.createdDt DESC
+    </select>
+
+    <select id="creatorTasks" resultType="com.saas.Planify.model.dto.task.TaskDto$TaskFlatDto">
+        SELECT
+        ST.taskNo,
+        ST.projectNo,
+        ST.creatorNo,
+        SC.nickname AS creatorNickname,
+        ST.assigneeNo,
+        SA.nickname AS assigneeNickname,
+        ST.title,
+        ST.description,
+        ST.status,
+        ST.priority,
+        ST.dueDate,
+        ST.parentTaskNo,
+        ST.sortOrder,
+        ST.createdDt,
+        ST.updatedDt,
+        ST.deletedDt,
+        ST.completedDt
+        FROM SAAS_TASK ST
+        JOIN SAAS_MEMBER SC ON SC.memberNo = ST.creatorNo
+        LEFT JOIN SAAS_MEMBER SA ON SA.memberNo = ST.assigneeNo
+        WHERE ST.creatorNo = #{creatorNo}
+        AND ST.deletedDt IS NULL
+        ORDER BY ST.createdDt DESC
+    </select>
+
+
+    <select id="AssigneeTask" resultType="com.saas.Planify.model.dto.task.TaskDto$TaskFlatDto">
+        SELECT
+        ST.taskNo,
+        ST.projectNo,
+        ST.creatorNo,
+        SC.nickname AS creatorNickname,
+        ST.assigneeNo,
+        SA.nickname AS assigneeNickname,
+        ST.title,
+        ST.description,
+        ST.status,
+        ST.priority,
+        ST.dueDate,
+        ST.parentTaskNo,
+        ST.sortOrder,
+        ST.createdDt,
+        ST.updatedDt,
+        ST.deletedDt,
+        ST.completedDt
+        FROM SAAS_TASK ST
+        JOIN SAAS_MEMBER SC ON SC.memberNo = ST.creatorNo
+        LEFT JOIN SAAS_MEMBER SA ON SA.memberNo = ST.assigneeNo
+        WHERE ST.assigneeNo = #{assigneeNo}
+        AND ST.deletedDt IS NULL
+        AND ST.status != 'DONE'
+        ORDER BY ST.dueDate ASC, ST.createdDt DESC
+    </select>
+
+
+    <select id="allComment" resultType="com.saas.Planify.model.dto.task.TaskDto$TaskCommentFlatDto">
+        SELECT
+        STC.commentNo,
+        STC.taskNo,
+        STC.memberNo,
+        SM.nickname AS memberNickname,
+        STC.content,
+        STC.parentCommentNo,
+        STC.createdDt,
+        STC.updatedDt,
+        STC.deletedDt
+        FROM SAAS_TASK_COMMENT STC
+        JOIN SAAS_MEMBER SM ON SM.memberNo = STC.memberNo
+        WHERE STC.taskNo = #{taskNo}
+        AND STC.deletedDt IS NULL
+        ORDER BY STC.parentCommentNo ASC, STC.createdDt ASC
+    </select>
+
+
+    <select id="getCommentAuthor" resultType="Long">
+        SELECT memberNo
+        FROM SAAS_TASK_COMMENT
+        WHERE commentNo = #{commentNo}
+        AND deletedDt IS NULL
+    </select>
+</mapper>

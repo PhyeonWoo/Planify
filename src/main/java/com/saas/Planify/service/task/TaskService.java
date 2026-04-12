@@ -38,7 +38,7 @@ public interface TaskService {
     // Task 순서 변경
     void updateTaskSortOrder(
             Long taskNo,
-            Long memberNo,
+            Long creatorNo,
             Integer sortOrder
     );
 
@@ -55,8 +55,7 @@ public interface TaskService {
 
     // Task 단건 조회
     TaskDto.TaskResponse singleTask(
-            Long taskNo,
-            Long creatorNo
+            Long taskNo
     );
 
     // 생성자의 Task 조회

@@ -11,8 +11,7 @@ public class TaskDto {
     public record TaskCreateRequest(
             String title,
             String description,
-            String status,
-            String priority,
+            TaskPriority priority,
             LocalDateTime dueDate,
             Long assigneeNo,
             Long parentTaskNo
@@ -22,15 +21,14 @@ public class TaskDto {
     public record TaskUpdateRequest(
             String title,
             String description,
-            String status,
-            String priority,
+            TaskPriority priority,
             LocalDateTime dueDate,
             Long assigneeNo
     ) {}
 
     // Task 상태 변경
     public record TaskStatusUpdateRequest(
-            String status
+            TaskStatus status
     ) {}
 
     // 댓글 생성
@@ -81,17 +79,8 @@ public class TaskDto {
         public List<TaskCommentResponse> replies;
     }
 
-    // Task 목록 응답
-    public static class TaskListResponse {
-        public Long taskNo;
-        public String title;
-        public String status;
-        public String priority;
-        public LocalDateTime dueDate;
-        public Integer sortOrder;
-        public String assigneeNickname;
-        public LocalDateTime createdDt;
-    }
+    enum TaskStatus { TODO, IN_PROGRESS, DONE, CANCELLED }
+    enum TaskPriority { URGENT, HIGH, MEDIUM, LOW }
 
 
     // ============== Flat DTO===============
@@ -116,7 +105,6 @@ public class TaskDto {
             LocalDateTime deletedDt,
             LocalDateTime completedDt
     ) {}
-
 
 
     // Task 댓글 조회 결과 (Flat)
