@@ -42,6 +42,7 @@ public class NotificationDto {
 
     public static class NotificationListResponse{
         public Long notiNo;
+        public Long memberNo;
         public String type;
         public String title;
         public String content;
@@ -60,6 +61,7 @@ public class NotificationDto {
         public Boolean inviteEmail;
         public LocalDateTime updatedD;
     }
+
 
 
     // 내부용 DTO
@@ -89,5 +91,14 @@ public class NotificationDto {
             LocalDateTime updatedDt
     ) {}
 
+
+    public record NotiListFlatDto(
+            Long notiNo,
+            String type,
+            String title,
+            String content,
+            Boolean isRead,
+            LocalDateTime createdDt
+    ) {}
 
 }

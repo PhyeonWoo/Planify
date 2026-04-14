@@ -31,9 +31,6 @@ public interface NotificationService {
             Long memberNo
     );
 
-    void singleReadNoti(
-            Long notiNo
-    );
 
     NotificationDto.NotificationSettingResponse settingNoti(
             Long memberNo
@@ -41,6 +38,7 @@ public interface NotificationService {
 
     void updateSetting(
             Long memberNo,
+            Long settingNo,
             NotificationDto.NotificationSettingRequest request
     );
 
