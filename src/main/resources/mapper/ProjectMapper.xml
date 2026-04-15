@@ -40,7 +40,7 @@
 
 
     <select id="MemberProject" resultType="com.saas.Planify.model.dto.project.ProjectDto$ProjectFlatResponse">
-        SELECT
+        SELECT DISTINCT
         SP.projectNo,
         SP.creatorNo AS memberNo,
         SM.nickname,
@@ -68,7 +68,7 @@
         SPM.role
         FROM SAAS_PROJECT_MEMBER SPM
         JOIN SAAS_MEMBER SM ON SM.memberNo = SPM.memberNo
-        LEFT JOIN SAAS_LOGIN SL ON SL.memberNo = SPM.memberNo
+        INNER JOIN SAAS_LOGIN SL ON SL.memberNo = SPM.memberNo
         WHERE SPM.projectNo = #{projectNo}
         ORDER BY SPM.pjMemberNo
     </select>
@@ -83,7 +83,7 @@
         SPM.role
         FROM SAAS_PROJECT_MEMBER SPM
         JOIN SAAS_MEMBER SM ON SM.memberNo = SPM.memberNo
-        LEFT JOIN SAAS_LOGIN SL ON SL.memberNo = SPM.memberNo
+        INNER JOIN SAAS_LOGIN SL ON SL.memberNo = SPM.memberNo
         WHERE SPM.projectNo = #{projectNo}
         AND SPM.memberNo = #{memberNo}
     </select>

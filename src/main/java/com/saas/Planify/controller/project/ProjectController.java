@@ -67,7 +67,7 @@ public class ProjectController {
     }
 
 
-    @GetMapping("/member/{memberNo}")
+    @GetMapping("/member")
     public ApiResponse<List<ProjectDto.ProjectResponse>> memberProject(
             @RequestHeader("Authorization") String bearerToken
     ) {
