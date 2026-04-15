@@ -23,15 +23,11 @@ public class WorkSpaceController {
     @PostMapping
     public ApiResponse<String> createWorkSpace(
             @RequestHeader("Authorization") String bearerToken,
-//            @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestBody WorkSpaceDto.WorkSpaceCreateRequest request
     ) {
         String token = jwtProvider.resolveToken(bearerToken);
         Long memberNo = jwtProvider.getMemberNo(token);
         workSpaceService.insertWorkSpace(memberNo, request);
-//        workSpaceService.insertWorkSpace(
-//                userPrincipal.getMemberNo(),
-//                request);
         return ApiResponse.ok("생성 완료");
     }
 

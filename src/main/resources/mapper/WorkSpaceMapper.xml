@@ -76,10 +76,8 @@
     <insert id="insertWorkSpaceMember" parameterType="com.saas.Planify.model.dto.workspace.WorkSpaceDto$WorkSpaceMemberCreateRequest">
         INSERT INTO SAAS_WORKSPACE_MEMBER (workSpaceNo, memberNo, role, joinedDt, updatedDt)
         VALUES (#{workSpaceNo}, #{memberNo}, #{role}, NOW(), NOW())
-<!--        <selectKey keyProperty="inviteNo" resultType="java.lang.Long" order="AFTER">-->
-<!--            SELECT LAST_INSERT_ID() AS inviteNo-->
-<!--        </selectKey>-->
     </insert>
+
 
     <update id="updateMemberRole">
         UPDATE SAAS_WORKSPACE_MEMBER
@@ -89,6 +87,7 @@
         AND memberNo = #{targetMemberNo}
         AND deletedDt IS NULL
     </update>
+
 
     <update id="deleteWorkSpaceMember">
         UPDATE SAAS_WORKSPACE_MEMBER
