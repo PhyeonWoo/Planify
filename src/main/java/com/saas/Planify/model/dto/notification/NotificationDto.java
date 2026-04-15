@@ -7,12 +7,7 @@ public class NotificationDto {
             String type,
             String title,
             String content,
-            String refType, // Task, schedule 등
-            Long refId
-    ) {}
-
-    public record NotificationReadRequest(
-            Boolean isRead
+            String refType // Task, schedule
     ) {}
 
     public record NotificationSettingRequest(
@@ -34,7 +29,6 @@ public class NotificationDto {
         public String title;
         public String content;
         public String refType;
-        public Long refId;
         public Boolean isRead;
         public LocalDateTime readDt;
         public LocalDateTime createdDt;
@@ -59,46 +53,7 @@ public class NotificationDto {
         public Boolean commentEmail;
         public Boolean invitePush;
         public Boolean inviteEmail;
-        public LocalDateTime updatedD;
+        public LocalDateTime updatedDt;
     }
-
-
-
-    // 내부용 DTO
-    public record NotificationFlatDto(
-            Long notiNo,
-            Long memberNo,
-            String type,
-            String title,
-            String content,
-            String refType,
-            Long refId,
-            Boolean isRead,
-            LocalDateTime readDt,
-            LocalDateTime createdDt
-    ) {}
-
-
-    public record NotificationSettingFlatDto(
-            Long settingNo,
-            Long memberNo,
-            Boolean taskDuePush,
-            Boolean taskDueEmail,
-            Boolean commentPush,
-            Boolean commentEmail,
-            Boolean invitePush,
-            Boolean inviteEmail,
-            LocalDateTime updatedDt
-    ) {}
-
-
-    public record NotiListFlatDto(
-            Long notiNo,
-            String type,
-            String title,
-            String content,
-            Boolean isRead,
-            LocalDateTime createdDt
-    ) {}
 
 }

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.saas.Planify.mapper.notification.NotificationMapper">
+
+    <select id="lastInertId" resultType="Long">
+        SELECT LAST_INSERT_ID()
+    </select>
+
+    <insert id="createNotification">
+        INSERT INTO SAAS_NOTIFICATION (notiNo, memberNo, type, title, content, refType)
+        VALUES (#{notiNo}, #{memberNo}, #{type}, #{title}, #{content}, #{refType})
+    </insert>
+
+
+    <select id="singleNoti" resultType="com.saas.Planify.model.dto.notification.NotificationDto$NotificationResponse">
+        SELECT
+        notiNo,
+        memberNo,
+        title,
+        content,
+        refType,
+        isRead,
+        readDt,
+        createdDt
+        FROM SAAS_NOTIFICATION
+        WHERE notiNo = #{notiNo}
+    </select>
+
+    <select id="memberAllNoti" resultType="com.saas.Planify.model.dto.notification.NotificationDto$NotificationListResponse">
+        SELECT
+        notiNo,
+        memberNo,
+        type,
+        title,
+        content,
+        isRead,
+        createdDt
+        FROM SAAS_NOTIFICATION
+        WHERE memberNo = #{memberNo}
+    </select>
+
+    <select id="unreadNoti" resultType="com.saas.Planify.model.dto.notification.NotificationDto$NotificationListResponse">
+        SELECT
+        notiNo,
+        memberNo,
+        type,
+        title,
+        content,
+        isRead,
+        createdDt
+        FROM SAAS_NOTIFICATION
+        WHERE memberNo = #{memberNo}
+        AND isRead IS FALSE
+    </select>
+
+    <update id="allReadNoti">
+        UPDATE SAAS_NOTIFICATION
+        SET
+        isRead = TRUE
+        WHERE memberNo = #{memberNo}
+        AND isRead IS FALSE
+    </update>
+
+
+    <update id="deleteNotification">
+        UPDATE SAAS_NOTIFICATION
+        SET
+        deletedDt = NOW()
+        WHERE notiNo = #{notiNo}
+    </update>
+
+    <select id="settingNoti" resultType="com.saas.Planify.model.dto.notification.NotificationDto$NotificationSettingResponse">
+        SELECT
+        settingNo,
+        memberNo,
+        taskDuePush,
+        taskDueEmail,
+        commentPush,
+        commentEmail,
+        invitePush,
+        inviteEmail,
+        updatedDt
+        FROM SAAS_NOTIFICATION_SETTING
+        WHERE memberNo = #{memberNo}
+    </select>
+
+
+    <update id="updateSetting">
+        UPDATE SAAS_NOTIFICATION_SETTING
+        SET
+        taskDuePush = #{request.taskDuePush},
+        taskDueEmail = #{request.taskDueEmail},
+        commentPush = #{request.commentPush},
+        commentEmail = #{request.commentEmail},
+        invitePush = #{request.invitePush},
+        inviteEmail = #{request.inviteEmail},
+        updatedDt = NOW()
+        WHERE settingNo = #{settingNo}
+        AND memberNo = #{memberNo}
+    </update>
+
+
+
+
+</mapper>
+

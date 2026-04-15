@@ -32,12 +32,8 @@ public interface NotificationMapper {
     void allReadNoti(Long memberNo);
 
 
-//    // 단건 읽음처리 하기
-//    void singleReadNoti(Long notiNo);
-
     void deleteNotification(
-            @Param("memberNo") Long memberNo,
-            @Param("notiNo") Long notiNo
+            Long notiNo
     );
 
 

@@ -31,7 +31,7 @@ public class NotificationServiceImpl implements NotificationService {
        if(!memberNo.equals(response.memberNo)) {
            throw new IllegalArgumentException("일치하지 않음");
        }
-       notificationMapper.deleteNotification(memberNo, notiNo);
+       notificationMapper.deleteNotification(notiNo);
     }
 
     @Override
@@ -46,32 +46,18 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public List<NotificationDto.NotificationListResponse> memberAllNoti(Long memberNo) {
-        List<NotificationDto.NotificationListResponse> response = notificationMapper.memberAllNoti(memberNo);
-        if (response.isEmpty()) {
-            throw new IllegalArgumentException("존재하지 않음");
-        }
-        if (!response.equals(memberNo)) {
-            throw new IllegalArgumentException("일치하지 않습니다");
-        }
-        return response;
+        return notificationMapper.memberAllNoti(memberNo);
     }
 
     @Override
     public List<NotificationDto.NotificationListResponse> unreadNoti(Long memberNo) {
         List<NotificationDto.NotificationListResponse> response = notificationMapper.unreadNoti(memberNo);
-        if (response.isEmpty()) {
-            throw new IllegalArgumentException("없음");
-        }
         return response;
     }
 
     // 전부 읽음처리하기
     @Override
     public void allReadNoti(Long memberNo) {
-        List<NotificationDto.NotificationListResponse> response = notificationMapper.unreadNoti(memberNo);
-        if(response.isEmpty()) {
-            throw new IllegalArgumentException("존재하지 않음");
-        }
         notificationMapper.allReadNoti(memberNo);
     }
 
@@ -88,6 +74,16 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void updateSetting(Long settingNo, Long memberNo, NotificationDto.NotificationSettingRequest request) {
+        NotificationDto.NotificationSettingResponse response = notificationMapper.settingNoti(memberNo);
+
+        if(response == null) {
+            throw new IllegalArgumentException("설정이 존재하지 않음");
+        }
+
+        if(!response.memberNo.equals(memberNo)) {
+            throw new IllegalArgumentException("권한이 없습니다.");
+        }
+
        int count = notificationMapper.updateSetting(settingNo, memberNo, request);
        if(count == 0) {
            throw new IllegalArgumentException("저장 안됨");
