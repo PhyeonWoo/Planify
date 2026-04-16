@@ -59,7 +59,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/workspace/**",
-                                "/api/v1/project/**").permitAll()
+                                "/api/v1/project/**","/api/v1/noti/**").permitAll()
                         .requestMatchers("/api/v1/auth/logout").authenticated()
 //                        .requestMatchers("/api/v1/workspace/**").authenticated()
                         .requestMatchers("/api/v1/auth/**").permitAll()
