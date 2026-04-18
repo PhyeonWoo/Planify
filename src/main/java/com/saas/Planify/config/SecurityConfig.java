@@ -41,7 +41,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000","http://localhost:8080"));
         configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(36000L);
 
@@ -59,7 +59,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/workspace/**",
-                                "/api/v1/project/**","/api/v1/noti/**").permitAll()
+                                "/api/v1/project/**","/api/v1/noti/**").authenticated()
                         .requestMatchers("/api/v1/auth/logout").authenticated()
 //                        .requestMatchers("/api/v1/workspace/**").authenticated()
                         .requestMatchers("/api/v1/auth/**").permitAll()

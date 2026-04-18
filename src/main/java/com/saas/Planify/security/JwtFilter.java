@@ -1,5 +1,6 @@
 package com.saas.Planify.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saas.Planify.redis.RedisTokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -7,11 +8,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Map;
 
 
 @Slf4j
@@ -48,17 +51,26 @@ public class JwtFilter extends OncePerRequestFilter {
             if (token != null && jwtProvider.validateToken(token)) {
                 if (redisTokenService.isBlackList(token)) {
                     log.warn("블랙리스트에 등록된 토큰입니다.");
-                } else {
-                    Authentication auth = jwtProvider.getAuthentication(token);
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-                    log.info("======= 인증 완료: {} =======", auth.getName());
+                    sendUnauthorized(response, "로그아웃된 토큰입니다.");
+                    return;
                 }
+                Authentication auth = jwtProvider.getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+                log.info("======= 인증 완료: {} =======", auth.getName());
             }
         } catch (Exception e) {
-            // 초대 수락 API에서 토큰이 없을 때 여기서 예외가 터지면 안 됩니다.
             log.error("토큰 검증 중 에러 발생: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void sendUnauthorized(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(
+                new ObjectMapper().writeValueAsString(Map.of("message", message))
+        );
     }
 }

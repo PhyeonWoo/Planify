@@ -6,6 +6,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -17,7 +18,8 @@ import java.util.Date;
 @Component
 public class JwtProvider {
 
-    private String secret = "hello1234hello1234hello1234hello1234hello1234hello1234hello12341515123124";
+    @Value("${jwt.secret}")
+    private String secret;
     private Key key;
 
     @PostConstruct

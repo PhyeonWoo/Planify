@@ -100,17 +100,15 @@ public AuthDto.LoginResponse login(AuthDto.LoginRequest request) {
         throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
     }
 
-    // [중요] 여기서 info.memberNo()가 DB의 '3'인지 로그를 찍어보세요!
-    System.out.println("로그인 시도 memberNo: " + info.memberNo());
+    log.info("로그인 시도 memberNo: {}", info.memberNo());
 
     String accessToken = jwtProvider.createAccessToken(
             info.email(),
-            info.memberNo(), // 반드시 DB의 SAAS_MEMBER.memberNo 값이어야 함
-            "ROLE_USER"      // 혹은 info.role() 등 권한 정보
+            info.memberNo(),
+            "ROLE_USER"
     );
 
-    // RefreshToken은 보통 loginNo나 email을 기준으로 관리합니다.
-    String refreshToken = jwtProvider.createRefreshToken(info.email(), info.loginNo());
+    String refreshToken = jwtProvider.createRefreshToken(info.email(), info.memberNo());
 
     redisTokenService.saveRefreshToken(info.email(), refreshToken, REFRESH_TOKEN_EXPIRATION);
 
@@ -133,8 +131,8 @@ public AuthDto.LoginResponse login(AuthDto.LoginRequest request) {
         }
 
         AuthDto.LoginInfoResponse info = authMapper.findByEmail(email);
-        String newAccessToken = jwtProvider.createAccessToken(info.email(), info.loginNo(), "ROLE_USER");
-        String newRefreshToken = jwtProvider.createRefreshToken(info.email(), info.loginNo());
+        String newAccessToken = jwtProvider.createAccessToken(info.email(), info.memberNo(), "ROLE_USER");
+        String newRefreshToken = jwtProvider.createRefreshToken(info.email(), info.memberNo());
 
         redisTokenService.saveRefreshToken(email, newRefreshToken, REFRESH_TOKEN_EXPIRATION);
 
