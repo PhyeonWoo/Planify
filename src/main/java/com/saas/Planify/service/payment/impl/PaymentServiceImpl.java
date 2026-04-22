@@ -9,6 +9,8 @@ import com.saas.Planify.service.payment.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +47,9 @@ public class PaymentServiceImpl implements PaymentService {
     // ========== Plan (플랜) ==========
 
     @Override
+    @Cacheable(value = "plans", key = "'all'")
     public List<PaymentDto.PlanResponse> getAllPlans() {
+        log.info("[Cache MISS] DB에서 플랜 목록 조회");
         List<PaymentDto.PlanFlatDto> flats = paymentMapper.allPlans();
         return flats.stream()
                 .map(this::convertPlanFlatToResponse)
@@ -53,7 +57,9 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Cacheable(value = "plans", key = "#planNo")
     public PaymentDto.PlanResponse getPlan(Long planNo) {
+        log.info("[Cache MISS] DB에서 플랜 조회: planNo={}", planNo);
         PaymentDto.PlanFlatDto flat = paymentMapper.singlePlan(planNo);
         if (flat == null) {
             throw new IllegalArgumentException("플랜이 없습니다");
@@ -62,6 +68,8 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
+    @CacheEvict(value = "plans", allEntries = true)
     public void createPlan(Long memberNo, PaymentDto.CreatePlanRequest request) {
         AuthDto.LoginInfoResponse response = authMapper.findByMemberNo(memberNo);
         if (!"ADMIN".equals(response.role())) {
@@ -71,6 +79,7 @@ public class PaymentServiceImpl implements PaymentService {
         if (count == 0) {
             throw new IllegalArgumentException("생성 안됨");
         }
+        log.info("[Cache EVICT] 플랜 생성으로 plans 캐시 전체 무효화");
     }
 
 

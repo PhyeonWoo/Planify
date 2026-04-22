@@ -18,6 +18,12 @@ public class PaymentDto {
             String paymentMethod
     ) {}
 
+    // Plan 제한
+    public record PlanLimit(
+            Integer memberLimit,
+            Integer workspaceLimit
+    ) {}
+
 
     // 결제 요청
     public record PaymentRequest(

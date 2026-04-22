@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.saas.Planify.mapper.payment.PaymentMapper">
+
+    <!-- ========== ResultMap (Record Constructor 기반) ========== -->
+
+    <!-- PlanFlatDto: Record 매핑 -->
+    <resultMap id="planResultMap" type="com.saas.Planify.model.dto.payment.PaymentDto$PlanFlatDto">
+        <constructor>
+            <arg column="plan_no" javaType="Long"/>
+            <arg column="plan_name" javaType="String"/>
+            <arg column="monthly_price" javaType="Long"/>
+            <arg column="workspace_limit" javaType="Integer"/>
+            <arg column="member_limit" javaType="Integer"/>
+            <arg column="description" javaType="String"/>
+            <arg column="created_dt" javaType="java.time.LocalDate"/>
+        </constructor>
+    </resultMap>
+
+    <!-- SubscriptionFlatDto: Record 매핑 -->
+    <resultMap id="subscriptionResultMap" type="com.saas.Planify.model.dto.payment.PaymentDto$SubscriptionFlatDto">
+        <constructor>
+            <arg column="subscription_no" javaType="Long"/>
+            <arg column="memberNo" javaType="Long"/>
+            <arg column="plan_no" javaType="Long"/>
+            <arg column="plan_name" javaType="String"/>
+            <arg column="status" javaType="String"/>
+            <arg column="start_dt" javaType="java.time.LocalDate"/>
+            <arg column="renewal_dt" javaType="java.time.LocalDate"/>
+            <arg column="cancelled_dt" javaType="java.time.LocalDate"/>
+            <arg column="payment_method" javaType="String"/>
+            <arg column="created_dt" javaType="java.time.LocalDate"/>
+            <arg column="updated_dt" javaType="java.time.LocalDate"/>
+        </constructor>
+    </resultMap>
+
+    <!-- PaymentHistoryFlatDto: Record 매핑 -->
+    <resultMap id="paymentHistoryResultMap" type="com.saas.Planify.model.dto.payment.PaymentDto$PaymentHistoryFlatDto">
+        <constructor>
+            <arg column="payment_no" javaType="Long"/>
+            <arg column="subscription_no" javaType="Long"/>
+            <arg column="amount" javaType="Long"/>
+            <arg column="status" javaType="String"/>
+            <arg column="payment_method" javaType="String"/>
+            <arg column="payment_key" javaType="String"/>
+            <arg column="order_id" javaType="String"/>
+            <arg column="failure_reason" javaType="String"/>
+            <arg column="paid_dt" javaType="java.time.LocalDate"/>
+            <arg column="created_dt" javaType="java.time.LocalDate"/>
+        </constructor>
+    </resultMap>
+
+    <!-- InvoiceFlatDto: Record 매핑 -->
+    <resultMap id="invoiceResultMap" type="com.saas.Planify.model.dto.payment.PaymentDto$InvoiceFlatDto">
+        <constructor>
+            <arg column="invoice_no" javaType="Long"/>
+            <arg column="subscription_no" javaType="Long"/>
+            <arg column="memberNo" javaType="Long"/>
+            <arg column="amount" javaType="Long"/>
+            <arg column="status" javaType="String"/>
+            <arg column="issued_dt" javaType="java.time.LocalDate"/>
+            <arg column="due_dt" javaType="java.time.LocalDate"/>
+            <arg column="paid_dt" javaType="java.time.LocalDate"/>
+            <arg column="description" javaType="String"/>
+            <arg column="created_dt" javaType="java.time.LocalDate"/>
+        </constructor>
+    </resultMap>
+
+    <!-- ========== Plan Queries ========== -->
+
+    <!-- 모든 플랜 조회 -->
+    <select id="allPlans" resultMap="planResultMap">
+        SELECT
+        plan_no,
+        plan_name,
+        monthly_price,
+        workspace_limit,
+        member_limit,
+        description,
+        created_dt
+        FROM SAAS_PLAN
+        ORDER BY monthly_price ASC
+    </select>
+
+    <!-- 단일 플랜 조회 -->
+    <select id="singlePlan" parameterType="Long" resultMap="planResultMap">
+        SELECT
+        plan_no,
+        plan_name,
+        monthly_price,
+        workspace_limit,
+        member_limit,
+        description,
+        created_dt
+        FROM SAAS_PLAN
+        WHERE plan_no = #{planNo}
+    </select>
+
+    <!-- 플랜 생성 -->
+    <insert id="createPlan">
+        INSERT INTO SAAS_PLAN (
+        plan_name,
+        monthly_price,
+        yearly_price,
+        workspace_limit,
+        member_limit,
+        storage_gb,
+        description,
+        created_dt
+        ) VALUES (
+        #{planName},
+        #{monthlyPrice},
+        #{yearlyPrice},
+        #{workspaceLimit},
+        #{memberLimit},
+        #{storageGb},
+        #{description},
+        NOW()
+        )
+    </insert>
+
+    <!-- ========== Subscription Queries ========== -->
+
+    <!-- 구독 생성 -->
+    <insert id="createSubscription">
+        INSERT INTO SAAS_SUBSCRIPTION (
+        memberNo,
+        plan_no,
+        status,
+        start_dt,
+        renewal_dt,
+        payment_method,
+        created_dt,
+        updated_dt
+        ) VALUES (
+        #{memberNo},
+        #{planNo},
+        'PENDING',
+        CURDATE(),
+        DATE_ADD(CURDATE(), INTERVAL 1 MONTH),
+        #{paymentMethod},
+        NOW(),
+        NOW()
+        )
+    </insert>
+
+    <!-- 사용자의 활성 구독 조회 -->
+    <select id="activeSubscription" parameterType="Long" resultMap="subscriptionResultMap">
+        SELECT
+        s.subscription_no,
+        s.memberNo,
+        s.plan_no,
+        p.plan_name,
+        s.status,
+        s.start_dt,
+        s.renewal_dt,
+        s.cancelled_dt,
+        s.payment_method,
+        s.created_dt,
+        s.updated_dt
+        FROM SAAS_SUBSCRIPTION s
+        LEFT JOIN SAAS_PLAN p ON s.plan_no = p.plan_no
+        WHERE s.memberNo = #{memberNo}
+        AND s.status IN ('ACTIVE', 'PENDING')
+        ORDER BY s.created_dt DESC
+        LIMIT 1
+    </select>
+
+    <!-- 단일 구독 조회 -->
+    <select id="singleSubscription" parameterType="Long" resultMap="subscriptionResultMap">
+        SELECT
+        s.subscription_no,
+        s.memberNo,
+        s.plan_no,
+        p.plan_name,
+        s.status,
+        s.start_dt,
+        s.renewal_dt,
+        s.cancelled_dt,
+        s.payment_method,
+        s.created_dt,
+        s.updated_dt
+        FROM SAAS_SUBSCRIPTION s
+        LEFT JOIN SAAS_PLAN p ON s.plan_no = p.plan_no
+        WHERE s.subscription_no = #{subscriptionNo}
+    </select>
+
+    <!-- 사용자의 모든 구독 이력 -->
+    <select id="memberSubscriptions" parameterType="Long" resultMap="subscriptionResultMap">
+        SELECT
+        s.subscription_no,
+        s.memberNo,
+        s.plan_no,
+        p.plan_name,
+        s.status,
+        s.start_dt,
+        s.renewal_dt,
+        s.cancelled_dt,
+        s.payment_method,
+        s.created_dt,
+        s.updated_dt
+        FROM SAAS_SUBSCRIPTION s
+        LEFT JOIN SAAS_PLAN p ON s.plan_no = p.plan_no
+        WHERE s.memberNo = #{memberNo}
+        ORDER BY s.created_dt DESC
+    </select>
+
+    <!-- 구독 상태 업데이트 -->
+    <update id="updateSubscriptionStatus">
+        UPDATE SAAS_SUBSCRIPTION
+        SET status = #{status},
+        updated_dt = NOW()
+        WHERE subscription_no = #{subscriptionNo}
+    </update>
+
+    <!-- 구독 갱신일 업데이트 -->
+    <update id="updateRenewalDate">
+        UPDATE SAAS_SUBSCRIPTION
+        SET renewal_dt = DATE_ADD(renewal_dt, INTERVAL 1 MONTH),
+        updated_dt = NOW()
+        WHERE subscription_no = #{subscriptionNo}
+    </update>
+
+    <!-- 구독 취소 -->
+    <update id="cancelSubscription">
+        UPDATE SAAS_SUBSCRIPTION
+        SET status = 'CANCELLED',
+        cancelled_dt = CURDATE(),
+        updated_dt = NOW()
+        WHERE subscription_no = #{subscriptionNo}
+    </update>
+
+    <!-- 구독 플랜 변경 -->
+    <update id="changeSubscriptionPlan">
+        UPDATE SAAS_SUBSCRIPTION
+        SET plan_no = #{newPlanNo},
+        updated_dt = NOW()
+        WHERE subscription_no = #{subscriptionNo}
+    </update>
+
+    <!-- ========== Payment History Queries ========== -->
+
+    <!-- 결제 이력 생성 -->
+    <insert id="createPaymentHistory">
+        INSERT INTO SAAS_PAYMENT_HISTORY (
+        subscription_no,
+        amount,
+        status,
+        payment_method,
+        payment_key,
+        order_id,
+        created_dt
+        ) VALUES (
+        #{subscriptionNo},
+        #{amount},
+        #{status},
+        #{paymentMethod},
+        #{paymentKey},
+        #{orderId},
+        NOW()
+        )
+    </insert>
+
+    <!-- 결제 이력 조회 (구독별) -->
+    <select id="subscriptionPayments" parameterType="Long" resultMap="paymentHistoryResultMap">
+        SELECT
+        payment_no,
+        subscription_no,
+        amount,
+        status,
+        payment_method,
+        payment_key,
+        order_id,
+        failure_reason,
+        paid_dt,
+        created_dt
+        FROM SAAS_PAYMENT_HISTORY
+        WHERE subscription_no = #{subscriptionNo}
+        ORDER BY created_dt DESC
+    </select>
+
+    <!-- 단일 결제 이력 조회 -->
+    <select id="singlePayment" parameterType="Long" resultMap="paymentHistoryResultMap">
+        SELECT
+        payment_no,
+        subscription_no,
+        amount,
+        status,
+        payment_method,
+        payment_key,
+        order_id,
+        failure_reason,
+        paid_dt,
+        created_dt
+        FROM SAAS_PAYMENT_HISTORY
+        WHERE payment_no = #{paymentNo}
+    </select>
+
+    <!-- 결제 상태 업데이트 -->
+    <update id="updatePaymentStatus">
+        UPDATE SAAS_PAYMENT_HISTORY
+        SET status = #{status},
+        payment_key = #{paymentKey},
+        paid_dt = NOW()
+        WHERE payment_no = #{paymentNo}
+    </update>
+
+    <!-- 결제 실패 기록 -->
+    <update id="recordPaymentFailure">
+        UPDATE SAAS_PAYMENT_HISTORY
+        SET status = 'FAILED',
+        failure_reason = #{failureReason}
+        WHERE payment_no = #{paymentNo}
+    </update>
+
+    <!-- 사용자의 결제 이력 -->
+    <select id="memberPaymentHistory" parameterType="Long" resultMap="paymentHistoryResultMap">
+        SELECT
+        ph.payment_no,
+        ph.subscription_no,
+        ph.amount,
+        ph.status,
+        ph.payment_method,
+        ph.payment_key,
+        ph.order_id,
+        ph.failure_reason,
+        ph.paid_dt,
+        ph.created_dt
+        FROM SAAS_PAYMENT_HISTORY ph
+        INNER JOIN SAAS_SUBSCRIPTION s ON ph.subscription_no = s.subscription_no
+        WHERE s.memberNo = #{memberNo}
+        ORDER BY ph.created_dt DESC
+    </select>
+
+    <!-- ========== Invoice Queries ========== -->
+
+    <!-- 청구서 생성 -->
+    <insert id="createInvoice">
+        INSERT INTO SAAS_INVOICE (
+        subscription_no,
+        memberNo,
+        amount,
+        status,
+        issued_dt,
+        due_dt,
+        description,
+        created_dt
+        ) VALUES (
+        #{subscriptionNo},
+        #{memberNo},
+        #{amount},
+        'PENDING',
+        CURDATE(),
+        DATE_ADD(CURDATE(), INTERVAL 7 DAY),
+        #{description},
+        NOW()
+        )
+    </insert>
+
+    <!-- 사용자의 청구서 조회 -->
+    <select id="memberInvoices" parameterType="Long" resultMap="invoiceResultMap">
+        SELECT
+        invoice_no,
+        subscription_no,
+        memberNo,
+        amount,
+        status,
+        issued_dt,
+        due_dt,
+        paid_dt,
+        description,
+        created_dt
+        FROM SAAS_INVOICE
+        WHERE memberNo = #{memberNo}
+        ORDER BY issued_dt DESC
+    </select>
+
+    <!-- 구독의 청구서 조회 -->
+    <select id="subscriptionInvoices" parameterType="Long" resultMap="invoiceResultMap">
+        SELECT
+        invoice_no,
+        subscription_no,
+        memberNo,
+        amount,
+        status,
+        issued_dt,
+        due_dt,
+        paid_dt,
+        description,
+        created_dt
+        FROM SAAS_INVOICE
+        WHERE subscription_no = #{subscriptionNo}
+        ORDER BY issued_dt DESC
+    </select>
+
+    <!-- 단일 청구서 조회 -->
+    <select id="singleInvoice" parameterType="Long" resultMap="invoiceResultMap">
+        SELECT
+        invoice_no,
+        subscription_no,
+        memberNo,
+        amount,
+        status,
+        issued_dt,
+        due_dt,
+        paid_dt,
+        description,
+        created_dt
+        FROM SAAS_INVOICE
+        WHERE invoice_no = #{invoiceNo}
+    </select>
+
+    <!-- 청구서 상태 업데이트 -->
+    <update id="updateInvoiceStatus">
+        UPDATE SAAS_INVOICE
+        SET status = #{status},
+        paid_dt = <if test="status == 'PAID'">NOW()</if><if test="status != 'PAID'">NULL</if>
+        WHERE invoice_no = #{invoiceNo}
+    </update>
+
+    <!-- 미납 청구서 조회 -->
+    <select id="overdueInvoices" resultMap="invoiceResultMap">
+        SELECT
+        invoice_no,
+        subscription_no,
+        memberNo,
+        amount,
+        status,
+        issued_dt,
+        due_dt,
+        paid_dt,
+        description,
+        created_dt
+        FROM SAAS_INVOICE
+        WHERE status = 'PENDING'
+        AND due_dt &lt; CURDATE()
+        ORDER BY due_dt ASC
+    </select>
+
+    <!-- ========== Plan Limit (플랜 한도) ========== -->
+
+    <!-- 워크스페이스 내 현재 멤버 수 조회 -->
+    <select id="currentWorkSpaceMember" parameterType="Long" resultType="int">
+        SELECT COUNT(*)
+        FROM SAAS_WORKSPACE_MEMBER
+        WHERE workSpaceNo = #{workSpaceNo}
+        AND deletedDt IS NULL
+    </select>
+
+    <!-- 멤버가 속한 워크스페이스 수 조회 -->
+    <select id="countMemberWorkspace" parameterType="Long" resultType="int">
+        SELECT COUNT(*)
+        FROM SAAS_WORKSPACE_MEMBER
+        WHERE memberNo = #{memberNo}
+        AND deletedDt IS NULL
+    </select>
+
+    <!-- 활성 구독의 플랜 한도 조회 -->
+    <select id="getMemberPlanLimit" parameterType="Long" resultType="com.saas.Planify.model.dto.payment.PaymentDto$PlanLimit">
+        SELECT
+            p.member_limit    AS memberLimit,
+            p.workspace_limit AS workspaceLimit
+        FROM SAAS_SUBSCRIPTION s
+        JOIN SAAS_PLAN p ON s.plan_no = p.plan_no
+        WHERE s.memberNo = #{memberNo}
+        AND s.status = 'ACTIVE'
+        LIMIT 1
+    </select>
+
+    <!-- ========== Last Insert ID ========== -->
+
+    <select id="lastInsertId" resultType="Long">
+        SELECT LAST_INSERT_ID()
+    </select>
+
+</mapper>
