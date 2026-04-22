@@ -18,5 +18,9 @@ public interface AuthMapper {
     // ID 즉 Email 동일 여부 조회
     boolean existByEmail(String email);
 
+    boolean existByNickname(String nickname);
+
     AuthDto.LoginInfoResponse findByEmail(String email);
+
+    AuthDto.LoginInfoResponse findByMemberNo(Long memberNo);
 }

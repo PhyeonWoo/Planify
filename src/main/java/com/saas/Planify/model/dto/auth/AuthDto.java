@@ -22,7 +22,6 @@ public class AuthDto {
 
             String nickName,
 
-            @NotBlank(message = "빈칸이면 안됩니다.")
             String role,
 
             @NotBlank(message = "빈칸이면 안됩니다.")
@@ -78,6 +77,7 @@ public class AuthDto {
             String email,
             String pw,
             Long memberNo,
-            Long loginNo
+            Long loginNo,
+            String role
     ) {}
 }

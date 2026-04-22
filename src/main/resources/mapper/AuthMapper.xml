@@ -6,7 +6,7 @@
     
     <insert id="insertMember" parameterType="com.saas.Planify.model.dto.auth.AuthDto$MemberCreateRequest">
         INSERT INTO SAAS_MEMBER (name, nickname, phoneNumber, role)
-        VALUES (#{name}, #{nickname}, #{phoneNumber}, #{role})
+        VALUES (#{name}, #{nickname}, #{phoneNumber}, 'USER')
     </insert>
 
     <insert id="insertLogin" parameterType="com.saas.Planify.model.dto.auth.AuthDto$LoginCreateRequest">
@@ -28,12 +28,14 @@
 
     <select id="findByEmail" resultType="com.saas.Planify.model.dto.auth.AuthDto$LoginInfoResponse">
         SELECT
-          email as email
-        , pw as pw
-        , loginNo as loginNo
-        , memberNo AS memberNo
-        FROM SAAS_LOGIN
-        WHERE email = #{email}
+          SG.email    AS email
+        , SG.pw       AS pw
+        , SG.loginNo  AS loginNo
+        , SG.memberNo AS memberNo
+        , SM.role     AS role
+        FROM SAAS_LOGIN SG
+        JOIN SAAS_MEMBER SM ON SM.memberNo = SG.memberNo
+        WHERE SG.email = #{email}
     </select>
 
 </mapper>
