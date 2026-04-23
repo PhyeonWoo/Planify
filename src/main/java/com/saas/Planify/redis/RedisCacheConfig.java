@@ -11,6 +11,7 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 import java.time.Duration;
+import java.util.Map;
 
 @Configuration
 @EnableCaching
@@ -19,22 +20,22 @@ public class RedisCacheConfig {
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
 
-        RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig()
+        RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .disableCachingNullValues()
                 .entryTtl(Duration.ofMinutes(15))
-
-                // Key 직렬화: StringRedisSerializer 대신 RedisSerializer.string() 사용 가능
                 .serializeKeysWith(
                         RedisSerializationContext.SerializationPair.fromSerializer(RedisSerializer.string())
                 )
-
-                // Value 직렬화 : GenericJackson2JsonRedisSerializer 대신 RedisSerializer.json() 사용
                 .serializeValuesWith(
                         RedisSerializationContext.SerializationPair.fromSerializer(RedisSerializer.json())
                 );
 
+        // 플랜 목록은 변경이 거의 없으므로 TTL을 1시간으로 별도 지정
+        RedisCacheConfiguration plansConfig = defaultConfig.entryTtl(Duration.ofHours(1));
+
         return RedisCacheManager.builder(connectionFactory)
-                .cacheDefaults(configuration)
+                .cacheDefaults(defaultConfig)
+                .withInitialCacheConfigurations(Map.of("plans", plansConfig))
                 .build();
     }
 }
