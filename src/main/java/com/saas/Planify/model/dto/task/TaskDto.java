@@ -13,6 +13,7 @@ public class TaskDto {
             String description,
             TaskPriority priority,
             LocalDateTime dueDate,
+            Integer sortOrder,
             Long assigneeNo,
             Long parentTaskNo
     ) {}
@@ -23,6 +24,7 @@ public class TaskDto {
             String description,
             TaskPriority priority,
             LocalDateTime dueDate,
+            Integer sortOrder,
             Long assigneeNo
     ) {}
 
