@@ -50,8 +50,10 @@ public class JwtFilter extends OncePerRequestFilter {
 
             if (token != null && jwtProvider.validateToken(token)) {
                 if (redisTokenService.isBlackList(token)) {
-                    log.warn("블랙리스트에 등록된 토큰입니다.");
+                    long start = System.currentTimeMillis();
                     sendUnauthorized(response, "로그아웃된 토큰입니다.");
+                    long elapsed = System.currentTimeMillis() - start;
+                    log.warn("[BLACKLIST BLOCK] 블랙리스트 토큰 차단 완료 - 응답시간: {}ms", elapsed);
                     return;
                 }
                 Authentication auth = jwtProvider.getAuthentication(token);
