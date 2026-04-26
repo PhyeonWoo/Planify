@@ -2,6 +2,7 @@ package com.saas.Planify.service.workspace.impl;
 
 import com.saas.Planify.mapper.workspace.WorkSpaceMapper;
 import com.saas.Planify.model.dto.workspace.WorkSpaceDto;
+import com.saas.Planify.service.payment.PaymentService;
 import com.saas.Planify.service.workspace.WorkSpaceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ import java.util.UUID;
 @Transactional
 public class WorkSpaceServiceImpl implements WorkSpaceService {
     private final WorkSpaceMapper workSpaceMapper;
+    private final PaymentService paymentService;
 
     @Value("${app.invite-base-url}")
     private String inviteBaseUrl;
@@ -30,6 +32,9 @@ public class WorkSpaceServiceImpl implements WorkSpaceService {
 
     @Override
     public void insertWorkSpace(Long memberNo, WorkSpaceDto.WorkSpaceCreateRequest request) {
+       // 워크스페이스 한도 조회
+        paymentService.checkWorkSpaceLimit(memberNo);
+
         workSpaceMapper.insertWorkSpace(memberNo,request);
         Long workSpaceNo = workSpaceMapper.lastInsertId();
 
@@ -155,6 +160,9 @@ public class WorkSpaceServiceImpl implements WorkSpaceService {
 
     @Override
     public WorkSpaceDto.WorkSpaceInviteResponse createInvite(Long workSpaceNo, Long memberNo, WorkSpaceDto.CreateInviteRequest request) {
+       // 멤버 수 한도 조회
+        paymentService.checkMemberLimit(workSpaceNo, memberNo);
+
         WorkSpaceDto.WorkSpaceFlatMember member =
                 workSpaceMapper.singleWorkSpaceMember(memberNo, workSpaceNo);
 
@@ -198,6 +206,7 @@ public class WorkSpaceServiceImpl implements WorkSpaceService {
 
     @Override
     public Long joinByInvite(String inviteToken, Long memberNo) {
+
         WorkSpaceDto.WorkSpaceInviteFlat flat = workSpaceMapper.selectInviteToken(inviteToken);
 
         if (flat == null) throw new IllegalArgumentException("유효하지 않은 토큰입니다.");

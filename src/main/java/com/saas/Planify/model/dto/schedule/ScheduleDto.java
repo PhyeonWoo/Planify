@@ -1,40 +1,55 @@
 package com.saas.Planify.model.dto.schedule;
 
-import com.google.api.client.util.DateTime;
+import java.time.LocalDateTime;
 
 public class ScheduleDto {
-    public record ScheduleRequest(
+
+    // 스케줄 생성 요청
+    public record ScheduleCreateRequest(
+            String title,
+            String description,
+            String location,
+            LocalDateTime startDt,
+            LocalDateTime endDt,
+            boolean isAllDay
+    ) {}
+
+    public record ScheduleUpdateRequest(
+            String title,
+            String description,
+            String location,
+            LocalDateTime startDt,
+            LocalDateTime endDt,
+            boolean isAllDay
+    ) {}
+
+    public record ScheduleFlatDto(
             Long scheduleNo,
-            Long workSpaceNo,
+            Long workspaceNo,
             Long creatorNo,
+            String creatorNickname,
             String title,
             String description,
             String location,
-            DateTime startDt,
-            DateTime endDt,
+            LocalDateTime startDt,
+            LocalDateTime endDt,
             boolean isAllDay,
-            DateTime createdDt,
-            DateTime updatedDt
+            LocalDateTime createdDt,
+            LocalDateTime updatedDt
     ) {}
 
-
-    public record ScheduleUpdate(
-            String title,
-            String description,
-            String location,
-            DateTime startDt,
-            DateTime endDt,
-            boolean isAllDay
-    ) {}
-
-    public record ScheduleResponse(
-            Long creatorNo,
-            Long workSpaceNo,
-            String title,
-            String description,
-            String location,
-            DateTime startDt,
-            DateTime endDt,
-            boolean isAllDay
-    ) {}
+    public static class ScheduleResponse {
+        public Long scheduleNo;
+        public Long workspaceNo;
+        public Long creatorNo;
+        public String creatorNickname;
+        public String title;
+        public String description;
+        public String location;
+        public LocalDateTime startDt;
+        public LocalDateTime endDt;
+        public boolean isAllDay;
+        public LocalDateTime createdDt;
+        public LocalDateTime updatedDt;
+    }
 }
