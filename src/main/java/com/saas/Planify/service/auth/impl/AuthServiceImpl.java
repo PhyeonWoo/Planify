@@ -32,11 +32,11 @@ public class AuthServiceImpl implements AuthService {
         if (authMapper.existByEmail(request.email())) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
+        if(authMapper.existByNickname(request.nickName())){
+            throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
+        }
 
         authMapper.insertMember(AuthDto.MemberCreateRequest.from(request));
-//        AuthDto.MemberCreateRequest memberReq = AuthDto.MemberCreateRequest.from(request);
-//        authMapper.insertMember(memberReq);
-
         Long memberNo = authMapper.lastInsertId();
         String encodePw = passwordEncoder.encode(request.pw());
 
@@ -58,64 +58,30 @@ public class AuthServiceImpl implements AuthService {
         }
 
     }
+    @Override
+    public AuthDto.LoginResponse login(AuthDto.LoginRequest request) {
+        AuthDto.LoginInfoResponse info = authMapper.findByEmail(request.email());
 
-//    @Override
-//    public AuthDto.LoginResponse login(AuthDto.LoginRequest request) {
-//        AuthDto.LoginInfoResponse info = authMapper.findByEmail(request.email());
-//
-//        if (info == null) {
-//            throw new IllegalArgumentException("존재하지 않는 계정입니다.");
-//        }
-//
-//        if (!passwordEncoder.matches(request.pw(), info.pw())) {
-//            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-//        }
-//
-////// AuthService의 로그인 메서드 안에서
-////        Member member = memberMapper.findByEmail(request.getEmail()).get();
-//
-//// 여기서 member.getMemberNo()가 '3'을 가져오는지 확인!
-//        String token = jwtProvider.createAccessToken(
-//                info.email(),
-//                info.memberNo(), // 이 값이 1이 아니라 3이어야 합니다.
-//                info.()
-//        );
-//        String refreshToken = jwtProvider.createRefreshToken(info.email(), info.loginNo());
-//
-//        redisTokenService.saveRefreshToken(info.email(), refreshToken, REFRESH_TOKEN_EXPIRATION);
-//
-//        return AuthDto.LoginResponse.of(accessToken, refreshToken);
-//    }
-
-
-@Override
-public AuthDto.LoginResponse login(AuthDto.LoginRequest request) {
-    AuthDto.LoginInfoResponse info = authMapper.findByEmail(request.email());
-
-    if (info == null) {
+        if (info == null) {
         throw new IllegalArgumentException("존재하지 않는 계정입니다.");
-    }
+        }
 
-    if (!passwordEncoder.matches(request.pw(), info.pw())) {
-        throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-    }
+        if (!passwordEncoder.matches(request.pw(), info.pw())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
 
-    // [중요] 여기서 info.memberNo()가 DB의 '3'인지 로그를 찍어보세요!
-    System.out.println("로그인 시도 memberNo: " + info.memberNo());
-
-    String accessToken = jwtProvider.createAccessToken(
+        log.info("로그인 시도 memberNo: {}", info.memberNo());
+        String accessToken = jwtProvider.createAccessToken(
             info.email(),
-            info.memberNo(), // 반드시 DB의 SAAS_MEMBER.memberNo 값이어야 함
-            "ROLE_USER"      // 혹은 info.role() 등 권한 정보
-    );
+            info.memberNo(),
+            "ROLE_USER"
+        );
 
-    // RefreshToken은 보통 loginNo나 email을 기준으로 관리합니다.
-    String refreshToken = jwtProvider.createRefreshToken(info.email(), info.loginNo());
+        String refreshToken = jwtProvider.createRefreshToken(info.email(), info.memberNo());
+        redisTokenService.saveRefreshToken(info.email(), refreshToken, REFRESH_TOKEN_EXPIRATION);
 
-    redisTokenService.saveRefreshToken(info.email(), refreshToken, REFRESH_TOKEN_EXPIRATION);
-
-    return AuthDto.LoginResponse.of(accessToken, refreshToken);
-}
+        return AuthDto.LoginResponse.of(accessToken, refreshToken);
+    }
 
     @Override
     public AuthDto.LoginResponse reissue(String refreshToken) {
@@ -133,8 +99,8 @@ public AuthDto.LoginResponse login(AuthDto.LoginRequest request) {
         }
 
         AuthDto.LoginInfoResponse info = authMapper.findByEmail(email);
-        String newAccessToken = jwtProvider.createAccessToken(info.email(), info.loginNo(), "ROLE_USER");
-        String newRefreshToken = jwtProvider.createRefreshToken(info.email(), info.loginNo());
+        String newAccessToken = jwtProvider.createAccessToken(info.email(), info.memberNo(), "ROLE_USER");
+        String newRefreshToken = jwtProvider.createRefreshToken(info.email(), info.memberNo());
 
         redisTokenService.saveRefreshToken(email, newRefreshToken, REFRESH_TOKEN_EXPIRATION);
 
