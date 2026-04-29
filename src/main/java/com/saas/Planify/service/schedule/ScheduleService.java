@@ -6,11 +6,22 @@ import java.util.List;
 
 public interface ScheduleService {
 
-    void createSchedule(Long memberNo, Long workSpaceNo, ScheduleDto.ScheduleCreateRequest request);
+    void createSchedule(
+            Long memberNo,
+            Long workSpaceNo,
+            ScheduleDto.ScheduleCreateRequest request
+    );
 
-    void updateSchedule(Long memberNo, Long scheduleNo, ScheduleDto.ScheduleUpdateRequest request);
+    void updateSchedule(
+            Long memberNo,
+            Long scheduleNo,
+            ScheduleDto.ScheduleUpdateRequest request
+    );
 
-    void deleteSchedule(Long scheduleNo, Long memberNo);
+    void deleteSchedule(
+            Long scheduleNo,
+            Long memberNo
+    );
 
     ScheduleDto.ScheduleResponse getSchedule(Long scheduleNo);
 
