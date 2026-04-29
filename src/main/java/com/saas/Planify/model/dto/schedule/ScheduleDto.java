@@ -9,8 +9,8 @@ public class ScheduleDto {
             String title,
             String description,
             String location,
-            LocalDateTime startDt,
-            LocalDateTime endDt,
+            String startDt,
+            String endDt,
             boolean isAllDay
     ) {}
 
@@ -18,8 +18,8 @@ public class ScheduleDto {
             String title,
             String description,
             String location,
-            LocalDateTime startDt,
-            LocalDateTime endDt,
+            String startDt,
+            String endDt,
             boolean isAllDay
     ) {}
 
@@ -31,8 +31,8 @@ public class ScheduleDto {
             String title,
             String description,
             String location,
-            LocalDateTime startDt,
-            LocalDateTime endDt,
+            String startDt,
+            String endDt,
             boolean isAllDay,
             LocalDateTime createdDt,
             LocalDateTime updatedDt
@@ -46,8 +46,8 @@ public class ScheduleDto {
         public String title;
         public String description;
         public String location;
-        public LocalDateTime startDt;
-        public LocalDateTime endDt;
+        public String startDt;
+        public String endDt;
         public boolean isAllDay;
         public LocalDateTime createdDt;
         public LocalDateTime updatedDt;
