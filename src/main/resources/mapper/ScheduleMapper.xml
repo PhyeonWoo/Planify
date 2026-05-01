@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.saas.Planify.mapper.schedule.ScheduleMapper">
+
+    <insert id="createSchedule">
+        INSERT INTO SAAS_SCHEDULE (
+            workspaceNo, creatorNo, title, description, location,
+            start_dt, end_dt, isAllDay, created_dt, updated_dt
+        )
+        VALUES (
+            #{workSpaceNo}, #{creatorNo},
+            #{request.title}, #{request.description}, #{request.location},
+            #{request.startDt}, #{request.endDt}, #{request.isAllDay},
+            NOW(), NOW()
+        )
+    </insert>
+
+    <update id="updateSchedule">
+        UPDATE SAAS_SCHEDULE
+        SET
+            title       = #{request.title},
+            description = #{request.description},
+            location    = #{request.location},
+            start_dt    = #{request.startDt},
+            end_dt      = #{request.endDt},
+            isAllDay    = #{request.isAllDay},
+            updated_dt  = NOW()
+        WHERE scheduleNo = #{scheduleNo}
+        AND deleted_dt IS NULL
+    </update>
+
+    <update id="deleteSchedule">
+        UPDATE SAAS_SCHEDULE
+        SET
+            deleted_dt = NOW(),
+            updated_dt = NOW()
+        WHERE scheduleNo = #{scheduleNo}
+        AND deleted_dt IS NULL
+    </update>
+
+    <select id="singleSchedule" resultType="com.saas.Planify.model.dto.schedule.ScheduleDto$ScheduleFlatDto">
+        SELECT
+            SS.scheduleNo,
+            SS.workspaceNo,
+            SS.creatorNo,
+            SM.nickname AS creatorNickname,
+            SS.title,
+            SS.description,
+            SS.location,
+            SS.start_dt   AS startDt,
+            SS.end_dt     AS endDt,
+            SS.isAllDay,
+            SS.created_dt AS createdDt,
+            SS.updated_dt AS updatedDt
+        FROM SAAS_SCHEDULE SS
+        JOIN SAAS_MEMBER SM ON SM.memberNo = SS.creatorNo
+        WHERE SS.scheduleNo = #{scheduleNo}
+        AND SS.deleted_dt IS NULL
+    </select>
+
+    <select id="mySchedules" resultType="com.saas.Planify.model.dto.schedule.ScheduleDto$ScheduleFlatDto">
+        SELECT
+            SS.scheduleNo,
+            SS.workspaceNo,
+            SS.creatorNo,
+            SM.nickname AS creatorNickname,
+            SS.title,
+            SS.description,
+            SS.location,
+            SS.start_dt   AS startDt,
+            SS.end_dt     AS endDt,
+            SS.isAllDay,
+            SS.created_dt AS createdDt,
+            SS.updated_dt AS updatedDt
+        FROM SAAS_SCHEDULE SS
+        JOIN SAAS_MEMBER SM ON SM.memberNo = SS.creatorNo
+        WHERE SS.creatorNo = #{memberNo}
+        AND SS.deleted_dt IS NULL
+        ORDER BY SS.start_dt ASC
+    </select>
+
+    <select id="workSpaceSchedules" resultType="com.saas.Planify.model.dto.schedule.ScheduleDto$ScheduleFlatDto">
+        SELECT
+            SS.scheduleNo,
+            SS.workspaceNo,
+            SS.creatorNo,
+            SM.nickname AS creatorNickname,
+            SS.title,
+            SS.description,
+            SS.location,
+            SS.start_dt   AS startDt,
+            SS.end_dt     AS endDt,
+            SS.isAllDay,
+            SS.created_dt AS createdDt,
+            SS.updated_dt AS updatedDt
+        FROM SAAS_SCHEDULE SS
+        JOIN SAAS_MEMBER SM ON SM.memberNo = SS.creatorNo
+        WHERE SS.workspaceNo = #{workSpaceNo}
+        AND SS.deleted_dt IS NULL
+        ORDER BY SS.start_dt ASC
+    </select>
+
+</mapper>
