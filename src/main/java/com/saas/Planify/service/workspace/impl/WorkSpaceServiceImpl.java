@@ -136,11 +136,11 @@ public class WorkSpaceServiceImpl implements WorkSpaceService {
     public void deleteWorkSpaceMember(Long workSpaceNo, Long targetMemberNo, Long memberNo) {
         // 삭제 요청자 권한 체크
         WorkSpaceDto.WorkSpaceFlatMember member =
-                workSpaceMapper.singleWorkSpaceMember(workSpaceNo, memberNo);
+                workSpaceMapper.singleWorkSpaceMember(memberNo, workSpaceNo);
 
-        if(member == null || (!"OWNER".equals(member.role()) && !"ADMIN".equals(member.role()))) {
-            throw new IllegalArgumentException("권한이 없습니다.");
-        }
+//        if (member != null || (!"OWNER".equals(member.role()))) {
+//            throw new IllegalArgumentException("권한이 없습니다.");
+//        }
 
         //제거 대상 존재 확인
         WorkSpaceDto.WorkSpaceFlatMember response =
