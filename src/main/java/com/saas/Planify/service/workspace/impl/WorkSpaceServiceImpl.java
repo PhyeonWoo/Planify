@@ -212,13 +212,17 @@ public class WorkSpaceServiceImpl implements WorkSpaceService {
         if (flat == null) throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
 
         if (memberNo != null) {
-            WorkSpaceDto.WorkSpaceMemberCreateRequest request =
-                    new WorkSpaceDto.WorkSpaceMemberCreateRequest(
-                            flat.workSpaceNo(),
-                            memberNo,
-                            flat.role()
-            );
-            workSpaceMapper.insertWorkSpaceMember(request);
+            WorkSpaceDto.WorkSpaceFlatMember existing =
+                    workSpaceMapper.singleWorkSpaceMember(memberNo, flat.workSpaceNo());
+            if (existing == null) {
+                WorkSpaceDto.WorkSpaceMemberCreateRequest request =
+                        new WorkSpaceDto.WorkSpaceMemberCreateRequest(
+                                flat.workSpaceNo(),
+                                memberNo,
+                                flat.role()
+                );
+                workSpaceMapper.insertWorkSpaceMember(request);
+            }
         }
 
         workSpaceMapper.incrementInviteUsedCount(inviteToken);

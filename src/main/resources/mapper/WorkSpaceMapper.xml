@@ -131,6 +131,7 @@
         WHERE SWM.memberNo = #{memberNo}
         AND SWM.workSpaceNo = #{workSpaceNo}
         AND SWM.deletedDt IS NULL
+        ORDER BY FIELD(SWM.role, 'OWNER', 'ADMIN', 'MEMBER') ASC
         LIMIT 1
     </select>
 
