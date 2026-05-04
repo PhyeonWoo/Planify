@@ -74,7 +74,7 @@
 
 
     <insert id="insertWorkSpaceMember" parameterType="com.saas.Planify.model.dto.workspace.WorkSpaceDto$WorkSpaceMemberCreateRequest">
-        INSERT INTO SAAS_WORKSPACE_MEMBER (workSpaceNo, memberNo, role, joinedDt, updatedDt)
+        INSERT IGNORE INTO SAAS_WORKSPACE_MEMBER (workSpaceNo, memberNo, role, joinedDt, updatedDt)
         VALUES (#{workSpaceNo}, #{memberNo}, #{role}, NOW(), NOW())
     </insert>
 
@@ -131,6 +131,7 @@
         WHERE SWM.memberNo = #{memberNo}
         AND SWM.workSpaceNo = #{workSpaceNo}
         AND SWM.deletedDt IS NULL
+        LIMIT 1
     </select>
 
 
