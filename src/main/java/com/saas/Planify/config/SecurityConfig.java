@@ -40,7 +40,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000","http://localhost:8080"));
-        configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE"));
+        configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(36000L);
@@ -58,11 +58,13 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Static resources & SPA
+                        .requestMatchers("/", "/index.html", "/assets/**", "/*.js", "/*.css", "/*.ico", "/*.png", "/*.svg").permitAll()
                         .requestMatchers("/api/v1/payment/success", "/api/v1/payment/fail").permitAll()
+                        .requestMatchers("/api/v1/workspace/invites/*/accept").permitAll()
                         .requestMatchers("/api/v1/workspace/**",
                                 "/api/v1/project/**","/api/v1/noti/**", "/api/v1/payment/**").authenticated()
                         .requestMatchers("/api/v1/auth/logout").authenticated()
-//                        .requestMatchers("/api/v1/workspace/**").authenticated()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
@@ -73,7 +75,8 @@ public class SecurityConfig {
                                 "/api-docs/**",
                                 "/webjars/**"
                         ).permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/v1/**").authenticated()
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
