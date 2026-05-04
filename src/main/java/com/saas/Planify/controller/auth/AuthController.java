@@ -36,7 +36,6 @@ public class AuthController {
     }
 
 
-
     @PostMapping("/logout")
     public ApiResponse<String> logout(
             @RequestHeader("Authorization") String bearerToken
@@ -46,6 +45,27 @@ public class AuthController {
         return ApiResponse.ok("로그아웃 완료");
     }
 
+
+    @GetMapping("/me")
+    public ApiResponse<AuthDto.MemberProfileResponse> getMyProfile(
+            @RequestHeader("Authorization") String bearerToken
+    ) {
+        String token = jwtProvider.resolveToken(bearerToken);
+        Long memberNo = jwtProvider.getMemberNo(token);
+        return ApiResponse.ok(authService.getProfile(memberNo));
+    }
+
+
+    @PutMapping("/update/nickname")
+    public ApiResponse<String> updateNickname(
+            @RequestHeader("Authorization") String bearerToken,
+            @RequestBody AuthDto.MemberNicknameUpdate req
+    ) {
+        String token = jwtProvider.resolveToken(bearerToken);
+        Long memberNo = jwtProvider.getMemberNo(token);
+        authService.updateNickname(memberNo, req);
+        return ApiResponse.ok("수정 완료");
+    }
 
     @PostMapping("/reissue")
     public ApiResponse<AuthDto.LoginResponse> tokenReissue(

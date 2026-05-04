@@ -32,6 +32,10 @@ public class AuthDto {
             String phoneNumber
     ) {}
 
+    public record MemberNicknameUpdate(
+            String nickname
+    ) {}
+
     // Member insert용 내부 DTO
     public record MemberCreateRequest(
             String name,
@@ -79,5 +83,11 @@ public class AuthDto {
             Long memberNo,
             Long loginNo,
             String role
+    ) {}
+
+    public record MemberProfileResponse(
+            Long memberNo,
+            String email,
+            String nickname
     ) {}
 }

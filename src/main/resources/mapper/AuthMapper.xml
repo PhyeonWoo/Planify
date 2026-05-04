@@ -26,16 +26,52 @@
         WHERE email = #{email}
     </select>
 
+    <select id="existByNickname" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM SAAS_MEMBER
+        WHERE nickname = #{nickname}
+    </select>
+
+    <update id="updateNickName">
+        UPDATE SAAS_MEMBER
+        SET
+        nickname = #{req.nickname}
+        WHERE memberNo = #{memberNo}
+    </update>
+
+
     <select id="findByEmail" resultType="com.saas.Planify.model.dto.auth.AuthDto$LoginInfoResponse">
         SELECT
           SG.email    AS email
         , SG.pw       AS pw
-        , SG.loginNo  AS loginNo
         , SG.memberNo AS memberNo
+        , SG.loginNo  AS loginNo
         , SM.role     AS role
         FROM SAAS_LOGIN SG
         JOIN SAAS_MEMBER SM ON SM.memberNo = SG.memberNo
         WHERE SG.email = #{email}
+    </select>
+
+    <select id="findByMemberNo" resultType="com.saas.Planify.model.dto.auth.AuthDto$LoginInfoResponse">
+        SELECT
+          SG.email    AS email
+        , SG.pw       AS pw
+        , SG.memberNo AS memberNo
+        , SG.loginNo  AS loginNo
+        , SM.role     AS role
+        FROM SAAS_LOGIN SG
+        JOIN SAAS_MEMBER SM ON SM.memberNo = SG.memberNo
+        WHERE SG.memberNo = #{memberNo}
+    </select>
+
+    <select id="getProfile" resultType="com.saas.Planify.model.dto.auth.AuthDto$MemberProfileResponse">
+        SELECT
+          SG.memberNo AS memberNo
+        , SG.email    AS email
+        , SM.nickname AS nickname
+        FROM SAAS_LOGIN SG
+        JOIN SAAS_MEMBER SM ON SM.memberNo = SG.memberNo
+        WHERE SG.memberNo = #{memberNo}
     </select>
 
 </mapper>

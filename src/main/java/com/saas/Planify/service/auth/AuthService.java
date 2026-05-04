@@ -8,9 +8,13 @@ public interface AuthService {
 
     void logout(String bearerToken);
 
+    void updateNickname(Long memberNo, AuthDto.MemberNicknameUpdate req);
+
     // 로그인 시도
     AuthDto.LoginResponse login(AuthDto.LoginRequest request);
 
     // 토큰 재발급
     AuthDto.LoginResponse reissue(String refreshToken);
+
+    AuthDto.MemberProfileResponse getProfile(Long memberNo);
 }

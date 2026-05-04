@@ -58,6 +58,20 @@ public class AuthServiceImpl implements AuthService {
         }
 
     }
+
+    @Override
+    public void updateNickname(Long memberNo, AuthDto.MemberNicknameUpdate req) {
+        if(authMapper.getProfile(memberNo) == null) {
+            throw new IllegalArgumentException("존재하지 않는 회원입니다.");
+        }
+
+        if(authMapper.existByNickname(req.nickname())) {
+            throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
+        }
+        authMapper.updateNickName(memberNo, req);
+
+    }
+
     @Override
     public AuthDto.LoginResponse login(AuthDto.LoginRequest request) {
         AuthDto.LoginInfoResponse info = authMapper.findByEmail(request.email());
@@ -81,6 +95,13 @@ public class AuthServiceImpl implements AuthService {
         redisTokenService.saveRefreshToken(info.email(), refreshToken, REFRESH_TOKEN_EXPIRATION);
 
         return AuthDto.LoginResponse.of(accessToken, refreshToken);
+    }
+
+    @Override
+    public AuthDto.MemberProfileResponse getProfile(Long memberNo) {
+        AuthDto.MemberProfileResponse profile = authMapper.getProfile(memberNo);
+        if (profile == null) throw new IllegalArgumentException("존재하지 않는 회원입니다.");
+        return profile;
     }
 
     @Override

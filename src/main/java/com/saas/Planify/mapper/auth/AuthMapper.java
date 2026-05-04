@@ -2,6 +2,7 @@ package com.saas.Planify.mapper.auth;
 
 import com.saas.Planify.model.dto.auth.AuthDto;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface AuthMapper {
@@ -11,6 +12,9 @@ public interface AuthMapper {
 
     // Login DB 생성
     void insertLogin(AuthDto.LoginCreateRequest request);
+
+    void updateNickName(@Param("memberNo") Long memberNo,
+                        @Param("req") AuthDto.MemberNicknameUpdate req);
 
 
     Long lastInsertId();
@@ -23,4 +27,6 @@ public interface AuthMapper {
     AuthDto.LoginInfoResponse findByEmail(String email);
 
     AuthDto.LoginInfoResponse findByMemberNo(Long memberNo);
+
+    AuthDto.MemberProfileResponse getProfile(Long memberNo);
 }
